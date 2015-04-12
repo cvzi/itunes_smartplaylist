@@ -78,6 +78,7 @@ A text format:
 	Plays is greater than 18
 ] and
 Rating is greater than 4```
+
 A sql-like format:
 
 ```
