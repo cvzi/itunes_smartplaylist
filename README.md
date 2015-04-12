@@ -2,9 +2,13 @@ iTunes Smartplaylist parser
 ===========================
 
 Convert smart playlist information to a readable form.
-This script is a **Python 3** implementation of **banshee-itunes-import-plugin** by Scott Peterson
+
+This script is a **Python 3** implementation of **banshee-itunes-import-plugin** by Scott Peterson.
+
 It was tested on Windows 7 with iTunes 12.1 (64bit).
+
 Smart playlist data in iTunes is saved in the *iTunes Music Library.xml* file.
+
 The data in the playlist entry in the xml file is base64 encoded binary data:
 ```xml
 <dict>
@@ -66,6 +70,7 @@ print(json.dumps(parser.queryTree, indent=2))
 ```
 
 A text format:
+
 ```Plays is greater than 15 and
 [
 	Plays is greater than 16 or
@@ -74,9 +79,11 @@ A text format:
 ] and
 Rating is greater than 4```
 A sql-like format:
+
 ```
 (Plays > 15) AND ( (Plays > 16) OR (Plays > 17) OR (Plays > 18) ) AND (Rating > 4)
 ```
+
 And a tree structure
 ```javascript
 {
