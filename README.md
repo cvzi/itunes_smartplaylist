@@ -71,17 +71,19 @@ print(json.dumps(parser.queryTree, indent=2))
 
 A text format:
 
-```Plays is greater than 15 and
+```
+Plays is greater than 15 and
 [
 	Plays is greater than 16 or
 	Plays is greater than 17 or
 	Plays is greater than 18
 ] and
-Rating is greater than 4```
+Rating is greater than 4
+```
 
 A sql-like format:
 
-```
+```sql
 (Plays > 15) AND ( (Plays > 16) OR (Plays > 17) OR (Plays > 18) ) AND (Rating > 4)
 ```
 
