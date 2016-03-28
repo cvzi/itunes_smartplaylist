@@ -123,3 +123,5 @@ And a tree structure
 }
 ```
 
+
+To export all playlists to text files, use `python3 export.py`
