@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 #Python v3.4
 
-# Export smarty playlists from "iTunes Music Library.xml" to text files
+# Export smart playlists from "iTunes Music Library.xml" to text files
 
 import os
 import sys
