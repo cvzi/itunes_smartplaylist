@@ -7,6 +7,7 @@ import os
 import sys
 import base64
 import json
+import traceback
 
 try:
     import xml.etree.cElementTree as ET
@@ -199,7 +200,7 @@ if __name__ == "__main__":
     print("Exporting playlists to %s" % outputDirectory)
     
     for playlist in library['Playlists']:
-        if 'Smart Criteria' in playlist and playlist['Smart Criteria']:
+        if 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
                 parser.data(playlist['Smart Info'],playlist['Smart Criteria'])
                 parser.parse()
@@ -212,10 +213,13 @@ if __name__ == "__main__":
                     #fs.write(json.dumps(parser.queryTree, indent=2))
                     #fs.write(parser.ignore)
                     
-            except:
+            except Exception as e:                
                 try:
                     print("Failed to decode playlist:")
                     print(playlist['Name'])
+                    #print(traceback.format_exc())
+                    print("Error: %s" % str(e))
                 except:
                     pass
+
         

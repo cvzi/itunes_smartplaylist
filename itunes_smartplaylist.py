@@ -31,7 +31,15 @@ MediaKinds = {
      0x10000 : "iTunes Extras",
     0x100000 : "Voice Memo",
     0x200000 : "iTunes U",
-    0xC00000 : "Book"
+    0xC00000 : "Book",
+    # TODO mediakinds of toplevel playlists
+    # The following are only used in the toplevel playlists: Music, TV Shows, Movies and Books 
+    # (These playlists can be selected with the arrows or from a dropdown menu in iTunes 12)
+    # Theses Media Kinds cannot be selected by the user. I am unsure about their meaning.
+    0xC00008 : "Book or Audiobook", # TODO My guess: This contains Books and Audiobooks
+    0x1021B1 : "Music", # TODOMy guess: This is similar to Music
+    0x208004 : "Undesired Music", # TODO My guess: This is some kind of Music that should not appear in the toplevel playlist
+    0x20A004 : "Undesired Other" # TODO My guess: This is something (other than music) that should not appear in the toplevel playlist
 }
 
 iCloudStatus = {
@@ -365,7 +373,10 @@ class SmartPlaylistParser:
         self.fieldName = StringFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(lower(" + self.fieldName + ")"
-
+        
+        KindEval = None
+        
+        
         if self.criteria[self.logicRulesOffset] == LogicRule.Contains:
             if self.criteria[self.logicSignOffset] == LogicSign.StringPositive:
                 self.workingOutput += " contains "
@@ -394,7 +405,7 @@ class SmartPlaylistParser:
                 KindEval = lambda kind, query: not query in kind.name
             end = True
                         
-        elif self.criteria[self.logicRulesOffset] == LogicRule.End:
+        elif self.criteria[self.logicRulesOffset] == LogicRule.Ends:
             self.workingOutput += " ends with "
             self.workingQuery += " Like '%"
             if self.criteria[self.offset] == StringFields.Kind:
@@ -407,16 +418,16 @@ class SmartPlaylistParser:
         for i in range(self.stringOffset,len(self.criteria)):
             if onByte:
                 if self.criteria[i] == 0 and i != len(self.criteria)-1:
-                    self.FinishStringField(end)
+                    self.FinishStringField(end, KindEval)
                     self.offset = i + 2
                     self.again = True
                     return
                 self.content += chr(self.criteria[i])
             onByte = not onByte
-        self.FinishStringField(end)
+        self.FinishStringField(end, KindEval)
         return
 
-    def FinishStringField(self,end):
+    def FinishStringField(self, end, KindEval):
         self.workingOutput += self.content
         self.workingOutput += '" '
         failed = False
@@ -537,7 +548,7 @@ class SmartPlaylistParser:
                     self.workingOutput += " is %s" % MediaKinds[numberA]
                     self.workingQuery += " = '%s'" % MediaKinds[numberA]
                 else:
-                    self.workingOutput += " is not %ds" % MediaKinds[numberA]
+                    self.workingOutput += " is not %s" % MediaKinds[numberA]
                     self.workingQuery += " != '%s'" % MediaKinds[numberA]
             else:
                 print("Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA,numberB))

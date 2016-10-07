@@ -3,9 +3,11 @@ iTunes Smartplaylist parser
 
 Convert smart playlist information to a readable form.
 
-This script is a **Python 3** implementation of **banshee-itunes-import-plugin** by Scott Peterson.
+This script is a **Python 3** implementation, based on **banshee-itunes-import-plugin** by Scott Peterson.
 
-It was tested on Windows 7 with iTunes 12.1 (64bit).
+It was tested on Windows 10 with iTunes 12.5.1 (64bit) and Python 3.4.4.
+
+As far as I know it does not work with Python 2.x.
 
 Smart playlist data in iTunes is saved in the *iTunes Music Library.xml* file.
 
@@ -125,3 +127,4 @@ And a tree structure
 
 
 To export all playlists to text files, use `python3 export.py`
+
