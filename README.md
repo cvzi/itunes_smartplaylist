@@ -3,7 +3,7 @@ iTunes Smartplaylist parser
 
 Convert smart playlist information to a readable form.
 
-This script is a **Python 3** implementation, based on **banshee-itunes-import-plugin** by Scott Peterson.
+This script is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
 
 It was tested on Windows 10 with iTunes 12.5.1 (64bit) and Python 3.4.4.
 
