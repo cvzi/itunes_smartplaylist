@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-#Python v3.4
 
 # Export smart playlists from "iTunes Music Library.xml" to text files
 
@@ -200,7 +199,7 @@ if __name__ == "__main__":
     print("Exporting playlists to %s" % outputDirectory)
     
     for playlist in library['Playlists']:
-        if 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
+        if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
                 parser.data(playlist['Smart Info'],playlist['Smart Criteria'])
                 parser.parse()
@@ -216,10 +215,9 @@ if __name__ == "__main__":
             except Exception as e:                
                 try:
                     print("Failed to decode playlist:")
+                    print(traceback.format_exc())
                     print(playlist['Name'])
-                    #print(traceback.format_exc())
-                    print("Error: %s" % str(e))
                 except:
-                    pass
+                    print(playlist)
 
         
