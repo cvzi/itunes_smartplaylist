@@ -223,6 +223,9 @@ class SmartPlaylistParser:
         self.root = {}
         self.queryTree = self.root
         self.queryTreeCurrent = []
+        self.fullTreeRoot = {}
+        self.fullTree = self.fullTreeRoot
+        self.fullTreeCurrent = []
         self.output = ""
         self.ignore = ""
         self.limit = {}
@@ -241,10 +244,12 @@ class SmartPlaylistParser:
                 self.conjunctionQuery = " OR "
                 self.conjunctionOutput = ' or\n'
                 self.queryTree["or"] = self.queryTreeCurrent
+                self.fullTree["or"] = self.fullTreeCurrent
             else:
                 self.conjunctionQuery = " AND "
                 self.conjunctionOutput = ' and\n'
                 self.queryTree["and"] = self.queryTreeCurrent
+                self.fullTree["and"] = self.fullTreeCurrent
                 
             while True:
                 self.again = False
@@ -259,6 +264,7 @@ class SmartPlaylistParser:
                         self.conjunctionQuery = old["conjunctionQuery"]
                         self.conjunctionOutput = old["conjunctionOutput"]
                         self.queryTreeCurrent = old["queryTreeCurrent"]
+                        self.fullTreeCurrent = old["fullTreeCurrent"]
                     else:
                         self.subStack[-1]["N"] -= 1
                 
@@ -299,24 +305,33 @@ class SmartPlaylistParser:
                         "N" : numberOfSubExpression,
                         "conjunctionQuery" : self.conjunctionQuery,
                         "conjunctionOutput" : self.conjunctionOutput,
-                        "queryTreeCurrent" : self.queryTreeCurrent
+                        "queryTreeCurrent" : self.queryTreeCurrent,
+                        "fullTreeCurrent" : self.fullTreeCurrent,
                         })
 
                     newtree = {}
                     newcurrent = []
                     self.queryTreeCurrent.append(newtree)
+                    
+                    newfulltree = {}
+                    newfulltreecurrent = []
+                    self.fullTreeCurrent.append(newfulltree)
+                    
                     if self.is_or:
                         self.conjunctionQuery = " OR "
                         self.conjunctionOutput = ' or\n'
                         newtree["or"] = newcurrent
+                        newfulltree["or"] = newfulltreecurrent
                     else:
                         self.conjunctionQuery = " AND "
                         self.conjunctionOutput = ' and\n'
                         newtree["and"] = newcurrent
+                        newfulltree["and"] = newfulltreecurrent
 
                     self.query = ""
                     self.output = ""
                     self.queryTreeCurrent = newcurrent
+                    self.fullTreeCurrent = newfulltreecurrent
                     
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
@@ -367,12 +382,17 @@ class SmartPlaylistParser:
         t = self.limit
         t["tree"] = self.queryTree
         self.queryTree = t
+        
+        t2 = self.limit
+        t2["fulltree"] = self.fullTree
+        self.fullTree = t2
     
     def ProcessStringField(self):
         end = False
         self.fieldName = StringFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(lower(" + self.fieldName + ")"
+        self.workingFull = {"field":self.fieldName, "type":"string"}
         
         KindEval = None
         
@@ -381,9 +401,11 @@ class SmartPlaylistParser:
             if self.criteria[self.logicSignOffset] == LogicSign.StringPositive:
                 self.workingOutput += " contains "
                 self.workingQuery += " LIKE '%"
+                self.workingFull["operator"] = "like"
             else:
                 self.workingOutput += " does not contain "
                 self.workingQuery += " NOT LIKE '%"
+                self.workingFull["operator"] = "not like"
             if self.criteria[self.offset] == StringFields.Kind:
                 KindEval = lambda kind, query: query in kind.name
             end = True
@@ -392,15 +414,18 @@ class SmartPlaylistParser:
             if self.criteria[self.logicSignOffset] == LogicSign.StringPositive:
                 self.workingOutput += " is "
                 self.workingQuery += " = '"
+                self.workingFull["operator"] = "is"
             else:
                 self.workingOutput += " is not "
                 self.workingQuery += " != '"
+                self.workingFull["operator"] = "is not"
             if self.criteria[self.offset] == StringFields.Kind:
                 KindEval = lambda kind, query: query == kind.name
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Starts:
             self.workingOutput += " starts with "
             self.workingQuery += " Like '"
+            self.workingFull["operator"] = "starts with"
             if self.criteria[self.offset] == StringFields.Kind:
                 KindEval = lambda kind, query: not query in kind.name
             end = True
@@ -408,6 +433,7 @@ class SmartPlaylistParser:
         elif self.criteria[self.logicRulesOffset] == LogicRule.Ends:
             self.workingOutput += " ends with "
             self.workingQuery += " Like '%"
+            self.workingFull["operator"] = "ends with"
             if self.criteria[self.offset] == StringFields.Kind:
                 KindEval = lambda kind, query: kind.name.index(query) == len(kind.name) - len(query)
             end = True
@@ -444,9 +470,12 @@ class SmartPlaylistParser:
 
                     self.workingQuery += "(lower(Uri)"
                     self.workingQuery += (" LIKE '%" + kind.extension + "')") if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else (" NOT LIKE '%" + kind.extension + "%')")
+                    self.workingFull["kind_value"] = kind.extension
+                    self.workingFull["kind_operator"] = "like" if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else "not like"
         else:
             self.workingQuery += self.content.lower()
             self.workingQuery += "%')" if end else "')"
+            self.workingFull["value"] = self.content
 
         if failed:
             if len(self.ignore) > 0:
@@ -462,30 +491,40 @@ class SmartPlaylistParser:
             self.query += self.workingQuery
 
             self.queryTreeCurrent.append((self.fieldName,self.workingQuery))
+            self.fullTreeCurrent.append(self.workingFull)
 
     def ProcessIntField(self):
         self.fieldName = IntFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
+        self.workingFull = {"field":self.fieldName, "type":"int"}
         
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating) 
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %d" % number
                 self.workingQuery += " = %d" % number
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = number
             else:
                 self.workingOutput += " is not %d" % number
                 self.workingQuery += " != %d" % number
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = number
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Greater:
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating) 
             self.workingOutput += " is greater than %d" % number
             self.workingQuery += " > %d" % number
-
+            self.workingFull["operator"] = "greater than"
+            self.workingFull["value"] = number
+            
         elif self.criteria[self.logicRulesOffset] == LogicRule.Less:
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating) 
             self.workingOutput += " is less than %d" % number
             self.workingQuery += " < %d" % number
+            self.workingFull["operator"] = "less than"
+            self.workingFull["value"] = number
             
         elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
             if self.criteria[self.logicSignOffset + 2] == 1:
@@ -493,6 +532,8 @@ class SmartPlaylistParser:
                 numberB = self._iTunesUint(self.criteria[self.intBOffset:self.intBOffset+4], self.criteria[self.offset] == IntFields.Rating)
                 self.workingOutput += " is in the range of %d to %d" % (numberA, numberB)
                 self.workingQuery += " BETWEEN %d AND %d" % (numberA, numberB)
+                self.workingFull["operator"] = "between"
+                self.workingFull["value"] = (numberA, numberB)
                 
             else:
                 numberA = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating)
@@ -501,9 +542,13 @@ class SmartPlaylistParser:
                     if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                         self.workingOutput += " is %d" % numberA
                         self.workingQuery += " = %d" % numberA
+                        self.workingFull["operator"] = "is"
+                        self.workingFull["value"] = numberA
                     else:
                         self.workingOutput += " is not %d" % numberA
                         self.workingQuery += " != %d" % numberA
+                        self.workingFull["operator"] = "is not"
+                        self.workingFull["value"] = numberA
                 else:
                     print("Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA,numberB))
                     self.workingOutput += " ##UnkownCase IntField: LogicRule.Other##"
@@ -520,6 +565,7 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName,self.workingQuery))
+        self.fullTreeCurrent.append(self.workingFull)
 
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
@@ -530,16 +576,22 @@ class SmartPlaylistParser:
         self.fieldName = MediaKindFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-
+        self.workingFull = {"field":self.fieldName, "type":"mediakind"}
+        
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating) 
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %s" % MediaKinds[number]
                 self.workingQuery += " = '%s'" % MediaKinds[number]
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = MediaKinds[number]
+                
             else:
                 self.workingOutput += " is not %s" % MediaKinds[number]
                 self.workingQuery += " != '%s'" % MediaKinds[number]
-            
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = MediaKinds[number]
+                
         elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
             numberA = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4], self.criteria[self.offset] == IntFields.Rating)
             numberB = self._iTunesUint(self.criteria[self.intBOffset:self.intBOffset+4], self.criteria[self.offset] == IntFields.Rating)
@@ -547,9 +599,14 @@ class SmartPlaylistParser:
                 if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                     self.workingOutput += " is %s" % MediaKinds[numberA]
                     self.workingQuery += " = '%s'" % MediaKinds[numberA]
+                    self.workingFull["operator"] = "is"
+                    self.workingFull["value"] = MediaKinds[numberA]
                 else:
                     self.workingOutput += " is not %s" % MediaKinds[numberA]
                     self.workingQuery += " != '%s'" % MediaKinds[numberA]
+                    self.workingFull["operator"] = "is not"
+                    self.workingFull["value"] = MediaKinds[numberA]
+                    
             else:
                 print("Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA,numberB))
                 self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
@@ -570,6 +627,7 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
+        self.fullTreeCurrent.append(self.workingFull)
 
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
@@ -579,6 +637,7 @@ class SmartPlaylistParser:
         self.fieldName = PlaylistFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
+        self.workingFull = {"field":self.fieldName, "type":"playlist"}
         
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             idpart0 = self._iTunesUint(self.criteria[self.intAOffset-4:self.intAOffset], self.criteria[self.offset] == IntFields.Rating)
@@ -587,10 +646,14 @@ class SmartPlaylistParser:
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %s%s" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
                 self.workingQuery += " = '%s%s'" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = "%s%s" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
             else:
                 self.workingOutput += " is not %s%s" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
                 self.workingQuery += " != '%s%s'" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
-
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = "%s%s" % (hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                
         else:
             print("Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset])
             self.workingOutput += " ##UnkownCase PlaylistField:LogicRule##"
@@ -607,6 +670,7 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
+        self.fullTreeCurrent.append(self.workingFull)
 
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
@@ -616,14 +680,17 @@ class SmartPlaylistParser:
         self.fieldName = BooleanFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-
+        self.workingFull = {"field":self.fieldName, "type":"boolean"}
+        
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             value = self.criteria[self.logicSignOffset] != LogicSign.IntPositive
             boolstr = "True" if value == 1 else "False"
             
             self.workingOutput += " is %s" % (boolstr)
             self.workingQuery += " = %d" % (value)
-  
+            self.workingFull["operator"] = "is"
+            self.workingFull["value"] = value == 1
+            
         else:
             print("Unkown logic rule in ProcessBooleanField: LogicRule=%d" % self.criteria[self.logicRulesOffset])
             self.workingOutput += " ##UnkownCase BooleanField:LogicRule##"
@@ -640,6 +707,7 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
+        self.fullTreeCurrent.append(self.workingFull)
 
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
@@ -649,17 +717,21 @@ class SmartPlaylistParser:
         self.fieldName = CloudFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-
+        self.workingFull = {"field":self.fieldName, "type":"cloud"}
+        
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4])
             
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %s" % (iCloudStatus[number])
                 self.workingQuery += " = '%s'" % (iCloudStatus[number])
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = iCloudStatus[number]
             else:
                 self.workingOutput += " is not %s" % (iCloudStatus[number])
                 self.workingQuery += " != '%s'" % (iCloudStatus[number])
-
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = iCloudStatus[number]
   
         else:
             print("Unkown logic rule in ProcessCloudField: LogicRule=%d" % self.criteria[self.logicRulesOffset])
@@ -677,7 +749,8 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.workingQuery, self.fieldName))
-
+        self.fullTreeCurrent.append(self.workingFull)
+        
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
             self.again = True
@@ -686,18 +759,22 @@ class SmartPlaylistParser:
         self.fieldName = LocationFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-
+        self.workingFull = {"field":self.fieldName, "type":"location"}
+        
         if self.criteria[self.logicRulesOffset] in (LogicRule.Is, LogicRule.Other):
             number = self._iTunesUint(self.criteria[self.intAOffset:self.intAOffset+4])
             
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %s" % (LocationKinds[number])
                 self.workingQuery += " = '%s'" % (LocationKinds[number])
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = LocationKinds[number]
             else:
                 self.workingOutput += " is not %s" % (LocationKinds[number])
                 self.workingQuery += " != '%s'" % (LocationKinds[number])
-
-  
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = LocationKinds[number]
+        
         else:
             print("Unkown logic rule in ProcessLocationField: LogicRule=%d" % self.criteria[self.logicRulesOffset])
             self.workingOutput += " ##UnkownCase LocationField:LogicRule##"
@@ -714,7 +791,8 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
-
+        self.fullTreeCurrent.append(self.workingFull)
+        
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
             self.again = True
@@ -724,16 +802,20 @@ class SmartPlaylistParser:
         self.fieldName = DateFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "TIMESTAMP(%s)" % self.fieldName
-
+        self.workingFull = {"field":self.fieldName, "type":"date"}
 
         if self.criteria[self.logicRulesOffset] == LogicRule.Greater:
             timestamp = self._iTunesDate(self.criteria[self.intAOffset:self.intAOffset+4])
             self.workingOutput += " is after %s" % self._dateString(timestamp)
             self.workingQuery += " > %d" % timestamp
+            self.workingFull["operator"] = "is after"
+            self.workingFull["value"] = timestamp
         elif self.criteria[self.logicRulesOffset] == LogicRule.Less:
             timestamp = self._iTunesDate(self.criteria[self.intAOffset:self.intAOffset+4])
             self.workingOutput += " is before %s" % self._dateString(timestamp)
             self.workingQuery += " < %d" % timestamp
+            self.workingFull["operator"] = "is before"
+            self.workingFull["value"] = timestamp
         elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
             if self.criteria[self.logicSignOffset + 2] == 1:
                 timestampA = self._iTunesDate(self.criteria[self.intAOffset:self.intAOffset+4])
@@ -741,29 +823,42 @@ class SmartPlaylistParser:
                 if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                     self.workingOutput += " is in the range of %s to %s" % (self._dateString(timestampA), self._dateString(timestampB))
                     self.workingQuery += " BETWEEN %d AND %d" % (timestampA,timestampB)
+                    self.workingFull["operator"] = "is in the range"
+                    self.workingFull["value"] = (timestampA,timestampB)
+                    self.workingFull["value_date"] = (self._dateString(timestampA), self._dateString(timestampB))
                 else:
                     self.workingOutput += " is not in the range of %s to %s" % (self._dateString(timestampA), self._dateString(timestampB))
                     self.workingQuery += " NOT BETWEEN %d AND %d" % (timestampA,timestampB)
+                    self.workingFull["operator"] = "is not in the range"
+                    self.workingFull["value"] = (timestampA,timestampB)
+                    self.workingFull["value_date"] = (self._dateString(timestampA), self._dateString(timestampB))
             elif self.criteria[self.logicSignOffset + 2] == 2:
                 if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                     self.workingOutput += " is in the last "
                     self.workingQuery = "(TIMESTAMP(NOW()) - TIMESTAMP(%s)) < " % self.fieldName
+                    self.workingFull["operator"] = "is in the last"
                 else:
                     self.workingOutput += " is not in the last "
                     self.workingQuery = "(TIMESTAMP(NOW()) - TIMESTAMP(%s)) > " % self.fieldName
-
+                    self.workingFull["operator"] = "is not in the last"
+                    
+                    
                 t = (self._iTunesUint(bytes([255-c for c in  self.criteria[self.timeValueOffset:self.timeValueOffset+4] ])) + 1 )% 4294967296
                 multiple = self._iTunesUint(self.criteria[self.timeMultipleOffset:self.timeMultipleOffset+4])
                 self.workingQuery += "%d" % (t*multiple)
-
+                self.workingFull["value"] = t*multiple
                 if multiple == 86400:
                     self.workingOutput += "%d days" % t
+                    self.workingFull["value_date"] = "%d days" % t
                 elif  multiple == 604800:
                     self.workingOutput += "%d weeks" % t
+                    self.workingFull["value_date"] = "%d weeks" % t
                 elif multiple == 2628000:
                     self.workingOutput += "%d months" % t
+                    self.workingFull["value_date"] = "%d months" % t
                 else:
                     self.workingOutput += "%d*%d seconds" % (multiple,t)
+                    self.workingFull["value_date"] = "%d*%d seconds" % (multiple,t)
                     print("##UnkownCase DateField: LogicRule.Other: multiple '%d' is unkown##" % multiple)
 
 
@@ -776,7 +871,8 @@ class SmartPlaylistParser:
         self.output += self.workingOutput
         self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
-
+        self.fullTreeCurrent.append(self.workingFull)
+        
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
             self.again = True              
