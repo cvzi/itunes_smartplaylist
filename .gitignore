@@ -1,0 +1,4 @@
+full_test.py
+__pycache__/
+out/
+*.pyc
