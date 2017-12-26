@@ -31,7 +31,8 @@ xsp_fields = {
 "Plays" : "playcount",
 "LastPlayed" : "lastplayed",
 "Rating" : "userrating",
-"Comments" : "comment"}
+"Comments" : "comment",
+"PlaylistPersistentID" : "playlist"}
 
 xsp_allowed_fields = xsp_fields.keys()
 
@@ -70,21 +71,21 @@ class EmptyPlaylistException(Exception):
     pass
 
 
-def createXSP_file(directory, name, data, createSubplaylists=True):
+def createXSP_file(directory, name, data, createSubplaylists=True, persistentIDMapping={}):
 
     def friendlyFilename(name):
         filename = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")
         filename = re.sub('[^\w\s-]', '', filename).strip()
         return filename
 
-    for name,content in createXSP(name, data, createSubplaylists):
+    for name,content in createXSP(name, data, createSubplaylists, persistentIDMapping):
         filename = friendlyFilename(name) + ".xsp"
         filepath = os.path.join(directory, filename)
         with open(filepath, "wb") as f:
             f.write(content.encode("utf-8"))
         print(filename)
 
-def createXSP(name, data, createSubplaylists=True):
+def createXSP(name, data, createSubplaylists=True, persistentIDMapping={}):
     
     
     t = data["fulltree"]
@@ -98,7 +99,7 @@ def createXSP(name, data, createSubplaylists=True):
         globalmatch = "or"
     
     
-    f = _minimize(_combineRules(t))
+    f = _minimize(_combineRules(t, persistentIDMapping))
 
     if f:
         y = _convertRule(f)
@@ -141,14 +142,14 @@ def createXSP(name, data, createSubplaylists=True):
     
     return r
 
-def _combineRules(obj):
+def _combineRules(obj, persistentIDMapping=[]):
     # Remove incompatible rules and combine similar rules
     if "and" in obj or "or" in obj:
         result = []
         for operator in obj:
             t = (operator, [])
             for x in obj[operator]:
-                y = _combineRules(x)
+                y = _combineRules(x, persistentIDMapping)
                 if y:
 
                     # combine with existing rule
@@ -176,6 +177,15 @@ def _combineRules(obj):
             return None
         if not obj["operator"] in xsp_allowed_operators:
             return None
+            
+        if obj["field"] == "PlaylistPersistentID":
+            print(obj)
+            if obj["value"] in persistentIDMapping:
+                # Replace PersistentID with playlistname
+                obj["value"] = persistentIDMapping[obj["value"]]
+            else:
+                return None
+            
         return obj
     
 def _minimize(obj):

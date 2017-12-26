@@ -61,7 +61,7 @@ def readLibraryFile(libraryFile):
                 current_islist = True
             else:
                 pass
-        elif event == "end":            
+        elif event == "end":
             if elem.tag == 'key':
                 pass
             elif elem.tag == 'dict':
@@ -113,6 +113,22 @@ if __name__ == "__main__":
 
         # Read XML file 
         library = readLibraryFile(fs)
+        persistentIDMapping = {}
+        for playlist in library['Playlists']:
+            if 'Playlist Persistent ID' in playlist and "Name" in playlist:
+                persistentIDMapping[playlist['Playlist Persistent ID']] = playlist["Name"]
+        
+        
+    print("Library loaded!")    
+    
+    userinput = input("Do you want to convert a (single) or (all) playlists? ")
+    export_all = True
+    if userinput.lower() in ("single", "1", "one"):
+        export_all = False
+    
+    userinput = input("Do you want to export nested rules to sub-playlists? (yes/no) ")
+    if userinput.lower() in ("n","no", "0"):
+        EXPORT_NESTED_RULES_AS_SUBPLAYLIST = False
         
     # Decode and export all smart playlists
 
@@ -123,9 +139,10 @@ if __name__ == "__main__":
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
     
-    print("Converting playlists to %s" % outputDirectory)
-
-    res = {}
+    if export_all:
+        print("Converting playlists to %s" % outputDirectory)
+    
+    res = []
     for playlist in library['Playlists']:
         if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
@@ -140,7 +157,9 @@ if __name__ == "__main__":
                     print(playlist)
             
             try:
-                createXSP_file(directory=outputDirectory, name=playlist['Name'], data=parser.queryTree, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST)
+                res.append((playlist['Name'], parser.queryTree))
+                if export_all:
+                    createXSP_file(directory=outputDirectory, name=playlist['Name'], data=parser.queryTree, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
             except EmptyPlaylistException as e:
                 print("%s is empty." % playlist['Name'])
             except Exception as e:
@@ -150,5 +169,35 @@ if __name__ == "__main__":
                     print(playlist['Name'])
                 except:
                     print(playlist)
-
+                    
+                    
+                    
+    if not export_all:
+        i = 1
+        for pname,_ in res:
+            print("%02d: %s" % (i, pname))
+            i +=1 
+            
+        while True:
+            i = input("Please give the number of the playlist (0 to exit): ")
+            if i in ("0",""):
+                break
+            
+            i = int(i)
+            pname, ptree = res[i-1]
+            print("Converting Playlist: %s" % pname)
+            try:
+                createXSP_file(directory=outputDirectory, name=pname, data=ptree, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
+            except EmptyPlaylistException as e:
+                print("%s is empty." % pname)
+            except Exception as e:
+                try:
+                    print("Failed to convert playlist:")
+                    print(traceback.format_exc())
+                    print(pname)
+                except:
+                    print(ptree)
+                    
+                    
+        
     print("All done!")
