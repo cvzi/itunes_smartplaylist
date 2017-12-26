@@ -9,6 +9,35 @@ It was tested on Windows 10 with iTunes 12.7.2 (64bit) and Python 3.6.
 
 It does not work with Python 2.x.
 
+Kodi smart playlists
+--------------------
+
+You can convert all your iTunes smart playlists to Kodi smart playlists with this command: 
+
+`python3 export_xsp.py`  
+
+Then place the resulting .xsp files in your [userdata](http://kodi.wiki/view/Userdata) folder.  
+
+Most of the common functions and rules are available in both formats and often iTunes playlists are fully convertible to Kodi.  
+The biggest difference are nested rules in iTunes which are not available in Kodi. 
+However, nested rules can be simulated with sub-playlists. These "helper"-playlists are named with the prefix "zzzsub_" and a MD5 hash of its rules. 
+If you don't want these subplaylists, set the variable `EXPORT_NESTED_RULES_AS_SUBPLAYLIST = False` in the *export_xsp.py* file.  
+
+More information on Kodie smart playlists:  
+http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file
+
+
+
+
+Text export
+-----------
+
+To export all playlists to text files, use `python3 export.py`  
+
+
+The format
+----------
+
 Smart playlist data in iTunes is saved in the *iTunes Music Library.xml* file.
 
 The data in the playlist entry in the xml file is base64 encoded binary data:
@@ -59,6 +88,7 @@ The data in the playlist entry in the xml file is base64 encoded binary data:
 		<dict>
 	</array>
 </dict>
+
 ```
 It can be converted into three different output formats:
 ```python
@@ -167,8 +197,4 @@ And two tree structures
   }
 }
 ```
-
-
-
-To export all playlists to text files, use `python3 export.py`
 

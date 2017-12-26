@@ -197,13 +197,15 @@ if __name__ == "__main__":
         os.makedirs(outputDirectory)
     
     print("Exporting playlists to %s" % outputDirectory)
-    
+
+    res = {}
     for playlist in library['Playlists']:
         if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
                 parser.data(playlist['Smart Info'],playlist['Smart Criteria'])
                 parser.parse()
                 filename = ("".join(x for x in playlist['Name'] if x.isalnum())) + ".txt"
+                res[playlist['Name']] = parser.queryTree
                 with open(os.path.join(outputDirectory, filename), "w") as fs:
                     fs.write(playlist['Name'])
                     fs.write("\r\n\r\n")
@@ -219,5 +221,7 @@ if __name__ == "__main__":
                     print(playlist['Name'])
                 except:
                     print(playlist)
+
+    
 
         
