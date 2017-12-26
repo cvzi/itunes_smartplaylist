@@ -35,7 +35,10 @@ xsp_fields = {
 
 xsp_allowed_fields = xsp_fields.keys()
 
-xsp_operators = {"like" : "contains",
+xsp_operators = {
+"and" : "all",
+"or" : "one",
+"like" : "contains",
 "not like" : "doesnotcontain",
 "is" : "is",
 "is not" : "isnot",
@@ -90,9 +93,9 @@ def createXSP(name, data, createSubplaylists=True):
         raise EmptyPlaylistException("Playlist is empty")
     
     if "and" in t:
-        globalmatch = "all"
+        globalmatch = "and"
     else:
-        globalmatch = "one"
+        globalmatch = "or"
     
     
     f = _minimize(_combineRules(t))
@@ -126,12 +129,12 @@ def createXSP(name, data, createSubplaylists=True):
     if createSubplaylists:
         for sub_globalmatch, sub_rules in subplaylists:
             sub_name = "zzzsub_"+hashlib.md5(sub_rules.encode('utf-8')).hexdigest()
-            subdocument = xml_doc.format(dec=xml_dec, name=_escapeHTML(sub_name), globalmatch=sub_globalmatch, rules=sub_rules, meta="")
+            subdocument = xml_doc.format(dec=xml_dec, name=_escapeHTML(sub_name), globalmatch=xsp_operators[sub_globalmatch], rules=sub_rules, meta="")
             rules += "\n" + xml_rule.format(field="playlist", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
             r.append((sub_name, subdocument))
     
     
-    document = xml_doc.format(dec=xml_dec, name=_escapeHTML(name), globalmatch=globalmatch, rules=rules, meta=meta)
+    document = xml_doc.format(dec=xml_dec, name=_escapeHTML(name), globalmatch=xsp_operators[globalmatch], rules=rules, meta=meta)
     
     r.append((name, document))
     
@@ -238,13 +241,15 @@ def _convertRule(obj, depth=0, docs=[]):
             return operator, "\n".join(rules), docs
         
     elif type(obj) is dict:
+        if "value_date" in obj:
+            obj["value"] = obj["value_date"]
         if type(obj["value"]) is not list:
             obj["value"] = [obj["value"]]
         values = []
         for value in obj["value"]:
             values.append(xml_value.format(value=_escapeHTML(value)))
         values = "\n".join(values) 
-        return xml_rule.format(field=xsp_fields[obj["field"]], operator=obj["operator"], values=values)
+        return xml_rule.format(field=xsp_fields[obj["field"]], operator=xsp_operators[obj["operator"]], values=values)
     
     elif type(obj) is list:
         rules = []
