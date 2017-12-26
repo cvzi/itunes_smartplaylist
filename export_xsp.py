@@ -201,3 +201,6 @@ if __name__ == "__main__":
                     
         
     print("All done!")
+    userdata = os.path.expandvars(r"%appdata%\kodi\userdata\playlists\music") if os.path.exists(os.path.expandvars(r"%appdata%\kodi\userdata")) else os.path.expanduser(r"~/Library/Application Support/Kodi/userdata/playlists/music")
+    print("You may copy the .xsp files to %s" % userdata)
+

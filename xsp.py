@@ -179,10 +179,10 @@ def _combineRules(obj, persistentIDMapping=[]):
             return None
             
         if obj["field"] == "PlaylistPersistentID":
-            print(obj)
             if obj["value"] in persistentIDMapping:
                 # Replace PersistentID with playlistname
                 obj["value"] = persistentIDMapping[obj["value"]]
+                print("!!! Playlist depends on playlist '%s' !!!" % obj["value"])
             else:
                 return None
             
