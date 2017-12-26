@@ -127,7 +127,7 @@ def createXSP(name, data, createSubplaylists=True):
         for sub_globalmatch, sub_rules in subplaylists:
             sub_name = "zzzsub_"+hashlib.md5(sub_rules.encode('utf-8')).hexdigest()
             subdocument = xml_doc.format(dec=xml_dec, name=_escapeHTML(sub_name), globalmatch=sub_globalmatch, rules=sub_rules, meta="")
-            rules += "\n" + xml_rule.format(field="playlist ", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
+            rules += "\n" + xml_rule.format(field="playlist", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
             r.append((sub_name, subdocument))
     
     
