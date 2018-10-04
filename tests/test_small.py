@@ -250,13 +250,32 @@ def test_double_parse():
     query = parser.query
     parser._parser.parse()
     assert query == parser.query
+    parser._parser.parse()
+    assert query == parser.query
+    
+def test_reuse_parser():
+    parser0 = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
+    parser1 = itunessmart.Parser(testdata[1]["info"], testdata[1]["criteria"])
+    
+    # Reuse parser 0 with data[1]
+    parser0.update_data_base64(testdata[1]["info"], testdata[1]["criteria"])
+    
+    assert parser0.queryTree == parser1.queryTree
+    
+    # Reuse parser 0 with data[3]
+    parser0.update_data_base64(testdata[3]["info"], testdata[3]["criteria"])
+    
+    # Reuse parser 1 with data[3]
+    parser1.update_data_base64(testdata[3]["info"], testdata[3]["criteria"])
+    
+    assert parser0.queryTree == parser1.queryTree
     
 
-    
 
 
 
 if __name__ == '__main__':    
     test_examples(verbose=True)
     test_double_parse()
+    test_reuse_parser()
 

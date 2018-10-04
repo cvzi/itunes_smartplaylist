@@ -23,6 +23,7 @@ class SmartPlaylistParser:
         return self.data(i, c)
 
     def data(self, data_info, data_criteria):
+        self.is_parsed = False
         self.info = data_info
         self.criteria = data_criteria
         self.query = ""

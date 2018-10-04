@@ -9,11 +9,24 @@ class Parser:
     def __init__(self, datastr_info, datastr_criteria):
         """Parse data from a base64 encoded string"""
         self._parser = SmartPlaylistParser(datastr_info, datastr_criteria)
-        
+        self._update()
+    
+    def _update(self):
         self.output = self._parser.output
         self.query = self._parser.query
         self.queryTree = self._parser.queryTree
         self.ignore = self._parser.ignore
+
+    def update_data_base64(self, datastr_info, datastr_criteria):
+        self._parser.str_data(datastr_info, datastr_criteria)
+        self._parser.parse()
+        self._update()
+        
+    def update_data_bytes(self, data_info, data_criteria):
+        self._parser.data(data_info, data_criteria)
+        self._parser.parse()
+        self._update()
+
 
 class BytesParser(Parser):
     """Parse data from raw bytes"""
@@ -23,10 +36,7 @@ class BytesParser(Parser):
         self._parser.data(data_info, data_criteria)
         self._parser.parse()
         
-        self.output = self._parser.output
-        self.query = self._parser.query
-        self.queryTree = self._parser.queryTree
-        self.ignore = self_.parser.ignore
+        self._update()
 
 
 
