@@ -1,97 +1,70 @@
+"""
+Module to convert from a parser result to a XSP playlist
+"""
+
 import hashlib
 import unicodedata
 import re
 import html
 import os.path
 
-xml_dec = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>'
-xml_doc = '''{dec}
-<smartplaylist type="songs">
-    <name>{name}</name>
-    <match>{globalmatch}</match>
-{rules}
-{meta}
-</smartplaylist>'''
+from itunessmart.xsp_structure import *
 
-xml_rule = '''    <rule field="{field}" operator="{operator}">
-{values}
-    </rule>'''
-
-xml_value = '''        <value>{value}</value>'''
-
-xsp_fields = {
-"Artist" :"artist", 
-"AlbumArtist" : "albumartist",
-"Album" : "album",
-"Genre" : "genre",
-"Name" : "title",
-"Year" : "year",
-"Duration" : "time",
-"TrackNumber" : "tracknumber",
-"Plays" : "playcount",
-"LastPlayed" : "lastplayed",
-"Rating" : "userrating",
-"Comments" : "comment",
-"PlaylistPersistentID" : "playlist"}
-
-xsp_allowed_fields = xsp_fields.keys()
-
-xsp_operators = {
-"and" : "all",
-"or" : "one",
-"like" : "contains",
-"not like" : "doesnotcontain",
-"is" : "is",
-"is not" : "isnot",
-"starts with" : "startswith",
-"ends with" : "endswith",
-"less than" : "lessthan",
-"greater than" : "greaterthan",
-"is after" : "after",
-"is before" : "before",
-"is in the last" : "inthelast",
-"is not in the last" : "notinthelast"}
-
-xsp_allowed_operators = xsp_operators.keys()
-
-xsp_sorting = {"SortName" : ["title", "ascending"],
-"SortAlbum" : ["album", "ascending"],
-"SortArtist" : ["artist", "ascending"],
-"Genre" : ["genre", "ascending"],
-"Rating DESC" : ["userrating", "descending"],
-"Rating ASC" : ["userrating", "ascending"],
-"LastPlayed DESC" : ["lastplayed", "descending"],
-"LastPlayed ASC" : ["lastplayed", "ascending"],
-"Plays DESC" : ["playcount", "descending"],
-"Plays ASC" : ["playcount", "ascending"],
-"DateAdded DESC" : ["dateadded ", "descending"],
-"DateAdded ASC" : ["dateadded ", "ascending"]}
-
-class EmptyPlaylistException(Exception):
+__all__ = ["createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException"]
+    
+class PlaylistException(Exception):
     pass
 
+class EmptyPlaylistException(PlaylistException):
+    pass
 
-def createXSP_file(directory, name, data, createSubplaylists=True, persistentIDMapping={}):
+def createXSPFile(directory, name, queryTree, createSubplaylists=True, persistentIDMapping=None, friendlyFilename=None):
+    """ Create XSP playlist file(s) from the parser result queryTree, returns a list of filenames of the generates files
+    :param str directory: the output directory
+    :param str name: the new name of the playlist
+    :param dict queryTree: the result of the parser
+    :param bool createSubplaylists: if true subplaylists are created for nested rules/query, if false nestes rules are ommited
+    :param persistentIDMapping: Optional, necessary for rules containing other playlists
+    :param function friendlyFilename: Optional, function to create a filename from the playlist name: e.g. friendlyFilename = lambda name: name.strip()
+    :return: list filenames
+    :rtype: list
+    """
+    
+    if friendlyFilename is None:
+        def friendlyFilename(name):
+            filename = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")
+            filename = re.sub('[^\w\s-]', '', filename).strip()
+            return filename
 
-    def friendlyFilename(name):
-        filename = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")
-        filename = re.sub('[^\w\s-]', '', filename).strip()
-        return filename
-
+    r = []
     for name,content in createXSP(name, data, createSubplaylists, persistentIDMapping):
         filename = friendlyFilename(name) + ".xsp"
         filepath = os.path.join(directory, filename)
         with open(filepath, "wb") as f:
             f.write(content.encode("utf-8"))
         print(filename)
+        r.append(filename)
+    
+    return r
 
-def createXSP(name, data, createSubplaylists=True, persistentIDMapping={}):
+def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None):
+    """ Create XSP playlist(s) from the parser result queryTree, returns a list of tuples (playlist_name, xml_content)
+    :param str name: the new name of the playlist
+    :param dict queryTree: the result of the parser
+    :param bool createSubplaylists: if true subplaylists are created for nested rules/query, if false nestes rules are ommited
+    :param persistentIDMapping: Optional, necessary for rules containing other playlists
+    :return: list of tuples: (playlist_name, xml_content)
+    :rtype: list
+    """
     
-    
-    t = data["fulltree"]
+    if persistentIDMapping is None:
+        persistentIDMapping = {}
+        
+        
+    t = queryTree["fulltree"]
     
     if not t:
-        raise EmptyPlaylistException("Playlist is empty")
+        raise EmptyPlaylistException("Playlist is empty", name)
     
     if "and" in t:
         globalmatch = "and"
@@ -114,7 +87,7 @@ def createXSP(name, data, createSubplaylists=True, persistentIDMapping={}):
             
             
     else:
-        raise EmptyPlaylistException("Playlist is completely incompatible")
+        raise PlaylistException("Playlist is completely incompatible", name)
         
     limit = ('    <limit>%d</limit>' % t['number']) if 'number' in t else ''
     order = ""
@@ -143,7 +116,7 @@ def createXSP(name, data, createSubplaylists=True, persistentIDMapping={}):
     return r
 
 def _combineRules(obj, persistentIDMapping=[]):
-    # Remove incompatible rules and combine similar rules
+    """Remove incompatible rules and combine similar rules"""
     if "and" in obj or "or" in obj:
         result = []
         for operator in obj:
@@ -189,7 +162,7 @@ def _combineRules(obj, persistentIDMapping=[]):
         return obj
     
 def _minimize(obj):
-    # Remove lists with only one entry
+    """Remove lists with only one entry"""
     if type(obj) is list:
         if len(obj) == 1:
             return _minimize(obj[0])
@@ -234,7 +207,7 @@ def _escapeHTML(x):
     return [_escapeHTML(i) for i in x]
 
 def _convertRule(obj, depth=0, docs=[]):
-    # Create XML rules
+    """Create XML rules"""
     if type(obj) is tuple:
         if not obj[1]:
             return ""

@@ -1,8 +1,11 @@
 
-__all__ = ["Parser", "BytesParser"]
+__all__ = ["Parser", "BytesParser", "createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException", "readiTunesLibrary", "generatePersistentIDMapping"]
 
 
 from itunessmart.parse import SmartPlaylistParser
+from itunessmart.xsp import createXSPFile, createXSP, PlaylistException, EmptyPlaylistException
+from itunessmart.library import readiTunesLibrary, generatePersistentIDMapping, createPlaylistTree
+
 
 class Parser:
     """Parse data from a base64 encoded string"""

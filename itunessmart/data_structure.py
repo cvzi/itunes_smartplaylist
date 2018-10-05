@@ -1,5 +1,5 @@
 """
-Module holding static data related to the playlist format.
+Module holding static data related to the iTunes playlist format.
 """
 
 from enum import IntEnum
