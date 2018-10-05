@@ -52,6 +52,12 @@ iCloudStatus = {
     0x07: "Duplicate"
 }
 
+LoveStatus = {
+    0x00: "None",
+    0x02: "Loved",
+    0x03: "Disliked",
+}
+
 LocationKinds = {
     0x01: "Computer",
     0x10: "iCloud"
@@ -160,11 +166,13 @@ class PlaylistFields(IntEnum):
     """The matching criteria which take a Persistent Playlist ID (64bit)"""
     PlaylistPersistentID = 0x28
 
+class LoveFields(IntEnum):
+    """The matching criteria which take a Persistent Playlist ID (64bit)"""
+    Love = 0x9a
 
 class CloudFields(IntEnum):
-    """The matching criteria which take a Persistent Playlist ID (64bit)"""
+    """The matching criteria which take iCloud status , as defined above """
     iCloudStatus = 0x86
-
 
 class LocationFields(IntEnum):
     """The matching criteria which take a Location, as defined above"""
@@ -188,7 +196,6 @@ class LogicRule(IntEnum):
     Ends = 0x08
     Greater = 0x10
     Less = 0x40
-
 
 class Offset(IntEnum):
     """Byte offsets for the fields"""

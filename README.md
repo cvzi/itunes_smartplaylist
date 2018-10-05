@@ -3,25 +3,25 @@ iTunes Smartplaylist parser
 
 Convert smart playlist information to a readable form.
 
-This script is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
+This module is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
 
-It was tested on Windows 10 with iTunes 12.7.2 (64bit) and Python 3.6.
+It was tested on Windows 10 with iTunes 12.9.0 (64bit) and Python 3.6.
 
 It does not work with Python 2.x.
 
 Kodi smart playlists
 --------------------
 
-You can convert all your iTunes smart playlists to Kodi smart playlists with this command: 
+You can convert all your iTunes smart playlists to Kodi smart playlists with this interactive script: 
 
-`python3 export_xsp.py`  
+`python3 utils/export_xsp.py`  
 
-Then place the resulting .xsp files in your [userdata](http://kodi.wiki/view/Userdata) folder.  
+Then place the resulting .xsp files from `out/` in your [userdata](http://kodi.wiki/view/Userdata) folder.  
 
 Most of the common functions and rules are available in both formats and often iTunes playlists are fully convertible to Kodi.  
 The biggest difference are nested rules in iTunes which are not available in Kodi. 
 However, nested rules can be simulated with sub-playlists. These "helper"-playlists are named with the prefix "zzzsub_" and a MD5 hash of its rules. 
-If you don't want these subplaylists, set the variable `EXPORT_NESTED_RULES_AS_SUBPLAYLIST = False` in the *export_xsp.py* file.  
+When you run `utils/export_xsp.py`, you can disable generation of subplaylists.  
 
 More information on Kodie smart playlists:  
 http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file
@@ -32,7 +32,7 @@ http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file
 Text export
 -----------
 
-To export all playlists to text files, use `python3 export.py`  
+To export all playlists to text files, use `python3 utils/export.py`  
 
 
 The format
@@ -92,13 +92,14 @@ The data in the playlist entry in the xml file is base64 encoded binary data:
 ```
 It can be converted into three different output formats:
 ```python
+import itunessmart
 info = "AQEAAwAAAAIAAAAZ..."
 criteria = "U0xzdAABAAEAAAAD..."
-parser = SmartPlaylistParser(info, criteria)
-parser.parse()
-print(parser.output)
-print(parser.query)
-print(json.dumps(parser.queryTree, indent=2))
+parser = itunessmart.Parser(info, criteria)
+result = parser.result
+print(result.output)
+print(result.query)
+print(json.dumps(result.queryTree, indent=2))
 ```
 
 A text format:

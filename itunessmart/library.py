@@ -5,14 +5,19 @@ Module for iTunes Library and library file `iTunes Music Library.xml`
 import time
 import datetime
 import base64
-
+from typing import BinaryIO
 
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 
-def generatePersistentIDMapping(library):
+class Library(dict):
+    pass
+    
+
+
+def generatePersistentIDMapping(library: Library):
     """Create a mapping from playlist id to playlist name. Necessary for converting rules concerning other playlists to xsp.
     :param dict library: the result of readiTunesLibrary()
     :return: persistentIDMapping
@@ -24,19 +29,19 @@ def generatePersistentIDMapping(library):
             persistentIDMapping[playlist['Playlist Persistent ID']] = playlist["Name"]
     return persistentIDMapping
 
-def readiTunesLibrary(libraryFileStream):
+def readiTunesLibrary(libraryFileStream: BinaryIO):
     """Read itunes library file `iTunes Music Library.xml` and return dict
     :param stream libraryFileStream: file `iTunes Music Library.xml`
     :return: iTunes library content
-    :rtype: dict
+    :rtype: Library
     """
-    parser = ET.iterparse(libraryFile, events=('start','end'))
+    parser = ET.iterparse(libraryFileStream, events=('start','end'))
     _, plist = next(parser)
 
     assert plist.tag == "plist"
     assert plist.attrib['version'] == "1.0"
     
-    current = {}
+    current = Library()
     current_islist = False # current can be dict or list
     key = "plist"
     data = current
@@ -118,9 +123,9 @@ class Node:
     def __repr__(self):
         return "%s #%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name",str(self.data['Playlist Persistent ID']) if 'Playlist Persistent ID' in self.data else "")
     
-def createPlaylistTree(library):
+def createPlaylistTree(library: Library):
     """ Create playlist tree
-    :param dict library: the result of readiTunesLibrary()
+    :param Library library: the result of readiTunesLibrary()
     :return: Return the tree and a mapping from PersistentId to playlist: (rootNode, playlistByPersistentId_dict)
     :rtype: tuple
     """

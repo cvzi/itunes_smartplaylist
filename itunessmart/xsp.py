@@ -7,8 +7,10 @@ import unicodedata
 import re
 import html
 import os.path
+from typing import Callable
 
 from itunessmart.xsp_structure import *
+from itunessmart.parse import SmartPlaylist
 
 __all__ = ["createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException"]
     
@@ -18,11 +20,11 @@ class PlaylistException(Exception):
 class EmptyPlaylistException(PlaylistException):
     pass
 
-def createXSPFile(directory, name, queryTree, createSubplaylists=True, persistentIDMapping=None, friendlyFilename=None):
+def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, friendlyFilename: Callable[[str], str] = None):
     """ Create XSP playlist file(s) from the parser result queryTree, returns a list of filenames of the generates files
     :param str directory: the output directory
     :param str name: the new name of the playlist
-    :param dict queryTree: the result of the parser
+    :param SmartPlaylist smartPlaylist: the result of the parser
     :param bool createSubplaylists: if true subplaylists are created for nested rules/query, if false nestes rules are ommited
     :param persistentIDMapping: Optional, necessary for rules containing other playlists
     :param function friendlyFilename: Optional, function to create a filename from the playlist name: e.g. friendlyFilename = lambda name: name.strip()
@@ -37,8 +39,8 @@ def createXSPFile(directory, name, queryTree, createSubplaylists=True, persisten
             return filename
 
     r = []
-    for name,content in createXSP(name, data, createSubplaylists, persistentIDMapping):
-        filename = friendlyFilename(name) + ".xsp"
+    for playlistname, content in createXSP(name=name, smartPlaylist=smartPlaylist, createSubplaylists=createSubplaylists, persistentIDMapping=persistentIDMapping):
+        filename = friendlyFilename(playlistname) + ".xsp"
         filepath = os.path.join(directory, filename)
         with open(filepath, "wb") as f:
             f.write(content.encode("utf-8"))
@@ -47,12 +49,13 @@ def createXSPFile(directory, name, queryTree, createSubplaylists=True, persisten
     
     return r
 
-def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None):
+def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, subPlaylistPrefix: str = "zzzsub_"):
     """ Create XSP playlist(s) from the parser result queryTree, returns a list of tuples (playlist_name, xml_content)
     :param str name: the new name of the playlist
-    :param dict queryTree: the result of the parser
+    :param SmartPlaylist smartPlaylist: the result of the parser
     :param bool createSubplaylists: if true subplaylists are created for nested rules/query, if false nestes rules are ommited
     :param persistentIDMapping: Optional, necessary for rules containing other playlists
+    :param subPlaylistPrefix: Prefix for name of sub playlists (prefix is followed by the md5 hash of the subplaylist xml)
     :return: list of tuples: (playlist_name, xml_content)
     :rtype: list
     """
@@ -60,8 +63,8 @@ def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None
     if persistentIDMapping is None:
         persistentIDMapping = {}
         
-        
-    t = queryTree["fulltree"]
+    
+    t = smartPlaylist.queryTree["fulltree"]
     
     if not t:
         raise EmptyPlaylistException("Playlist is empty", name)
@@ -72,7 +75,7 @@ def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None
         globalmatch = "or"
     
     
-    f = _minimize(_combineRules(t, persistentIDMapping))
+    f = _minimize(_combineRules(t, persistentIDMapping, createSubplaylists))
 
     if f:
         y = _convertRule(f)
@@ -85,9 +88,8 @@ def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None
             rules = y
             subplaylists = []
             
-            
     else:
-        raise PlaylistException("Playlist is completely incompatible", name)
+        raise PlaylistException("Playlist is incompatible. All of the rules are incompatible with XSP format", name)
         
     limit = ('    <limit>%d</limit>' % t['number']) if 'number' in t else ''
     order = ""
@@ -102,7 +104,7 @@ def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None
     r = []
     if createSubplaylists:
         for sub_globalmatch, sub_rules in subplaylists:
-            sub_name = "zzzsub_"+hashlib.md5(sub_rules.encode('utf-8')).hexdigest()
+            sub_name = subPlaylistPrefix + hashlib.md5(sub_rules.encode('utf-8')).hexdigest()
             subdocument = xml_doc.format(dec=xml_dec, name=_escapeHTML(sub_name), globalmatch=xsp_operators[sub_globalmatch], rules=sub_rules, meta="")
             rules += "\n" + xml_rule.format(field="playlist", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
             r.append((sub_name, subdocument))
@@ -115,14 +117,14 @@ def createXSP(name, queryTree, createSubplaylists=True, persistentIDMapping=None
     
     return r
 
-def _combineRules(obj, persistentIDMapping=[]):
+def _combineRules(obj, persistentIDMapping, createSubplaylists):
     """Remove incompatible rules and combine similar rules"""
     if "and" in obj or "or" in obj:
         result = []
         for operator in obj:
             t = (operator, [])
             for x in obj[operator]:
-                y = _combineRules(x, persistentIDMapping)
+                y = _combineRules(x, persistentIDMapping, createSubplaylists)
                 if y:
 
                     # combine with existing rule
@@ -155,7 +157,11 @@ def _combineRules(obj, persistentIDMapping=[]):
             if obj["value"] in persistentIDMapping:
                 # Replace PersistentID with playlistname
                 obj["value"] = persistentIDMapping[obj["value"]]
-                print("!!! Playlist depends on playlist '%s' !!!" % obj["value"])
+                if not createSubplaylists:
+                    try:
+                        print("# Playlist dependency ignored: Depends on '%s'" % obj["value"])
+                    except:
+                        print("# Playlist dependency ignored.")
             else:
                 return None
             

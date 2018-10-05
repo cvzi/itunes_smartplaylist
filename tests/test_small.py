@@ -95,46 +95,46 @@ testdata = [
                 "liveupdate": True,
                 "tree": {
                   "and": [
-                    [
+                    (
                       "HasArtwork",
                       "(HasArtwork = 1)"
-                    ],
-                    [
+                    ),
+                    (
                       "HasArtwork",
                       "(HasArtwork = 0)"
-                    ],
-                    [
+                    ),
+                    (
                       "Purchased",
                       "(Purchased = 1)"
-                    ],
-                    [
+                    ),
+                    (
                       "Purchased",
                       "(Purchased = 0)"
-                    ],
-                    [
+                    ),
+                    (
                       "SortAlbum",
                       "(lower(SortAlbum) = 'l.e.s artistes - ep')"
-                    ],
-                    [
+                    ),
+                    (
                       "SortAlbumartist",
                       "(lower(SortAlbumartist) = 'academy is...')"
-                    ],
-                    [
+                    ),
+                    (
                       "SortComposer",
                       "(lower(SortComposer) = 'cardigans')"
-                    ],
-                    [
+                    ),
+                    (
                       "SortName",
                       "(lower(SortName) LIKE '%abc%')"
-                    ],
-                    [
+                    ),
+                    (
                       "SortShow",
                       "(lower(SortShow) Like 'fair%')"
-                    ],
-                    [
+                    ),
+                    (
                       "VideoRating",
                       "(lower(VideoRating) = 'old')"
-                    ]
+                    )
                   ]
                 },
                 "fulltree": {
@@ -220,38 +220,41 @@ testdata = [
 def test_examples(verbose=False):
     for test in testdata:
         parser = itunessmart.Parser(test["info"], test["criteria"])
+        result = parser.result
         if verbose:
-            print("\n\ntest: %s" % test["desc"])
+            print("\n\nTest: %s" % test["desc"])
             print("############")
-            print(parser.output)
+            print(result.output)
             print("############")
-            print(parser.query)
+            print(result.query)
             print("############")
-            print(json.dumps(parser.queryTree, indent=2))
+            print(json.dumps(result.queryTree, indent=2))
             print("############")
-            print(parser.ignore)
+            print(result.ignore)
 
-        if "expected" in testdata:
-            exp = testdata["expected"]
+        if "expected" in test and test["expected"]:
+            exp = test["expected"]
             if "output" in exp:
-                assert exp.pop("output") == parser.output
+                assert exp.pop("output") == result.output
             if "query" in exp:
-                assert exp.pop("query") == parser.query
+                assert exp.pop("query") == result.query
             if "queryTree" in exp:
-                assert exp.pop("queryTree") == parser.queryTree
+                assert exp.pop("queryTree") == result.queryTree
             if "ignore" in exp:
-                assert exp.pop("ignore") == parser.ignore
+                assert exp.pop("ignore") == result.ignore
 
             for key in exp:
-                assert exp[key] == parser.query[key]
+                assert exp[key] == result.queryTree[key]
+        else:
+            raise NotImplementedError(test["desc"])
 
 def test_double_parse():
     parser = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
-    query = parser.query
+    query = parser.result.query
     parser._parser.parse()
-    assert query == parser.query
+    assert query == parser.result.query
     parser._parser.parse()
-    assert query == parser.query
+    assert query == parser.result.query
     
 def test_reuse_parser():
     parser0 = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
@@ -260,7 +263,7 @@ def test_reuse_parser():
     # Reuse parser 0 with data[1]
     parser0.update_data_base64(testdata[1]["info"], testdata[1]["criteria"])
     
-    assert parser0.queryTree == parser1.queryTree
+    assert parser0.result.queryTree == parser1.result.queryTree
     
     # Reuse parser 0 with data[3]
     parser0.update_data_base64(testdata[3]["info"], testdata[3]["criteria"])
@@ -268,7 +271,7 @@ def test_reuse_parser():
     # Reuse parser 1 with data[3]
     parser1.update_data_base64(testdata[3]["info"], testdata[3]["criteria"])
     
-    assert parser0.queryTree == parser1.queryTree
+    assert parser0.result.queryTree == parser1.result.queryTree
     
 
 

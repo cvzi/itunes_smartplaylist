@@ -6,6 +6,7 @@ import os
 import sys
 import json
 import traceback
+import base64
 
 
 try:
@@ -71,18 +72,25 @@ if __name__ == "__main__":
     for playlist in library['Playlists']:
         if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
-                parser.update_data_base64(playlist['Smart Info'],playlist['Smart Criteria'])
+                parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
                 filename = ("".join(x for x in playlist['Name'] if x.isalnum())) + ".txt"
-                res[playlist['Name']] = parser.queryTree
+                res[playlist['Name']] = parser.result.queryTree
                 with open(os.path.join(outputDirectory, filename), "w") as fs:
                     fs.write(playlist['Name'])
                     fs.write("\r\n\r\n")
-                    fs.write(parser.output)
-                    #fs.write(parser.query)
-                    #fs.write(json.dumps(parser.queryTree, indent=2))
-                    #fs.write(parser.ignore)
-                    
-            except Exception as e:                
+                    fs.write(parser.result.output)
+                    #fs.write(parser.result.query)
+                    #fs.write(json.dumps(parser.result.queryTree, indent=2))
+                    #fs.write(parser.result.ignore)
+                    #fs.write("\r\n")
+                    #fs.write(base64.standard_b64encode(playlist['Smart Info']).decode("utf-8"))
+                    #fs.write("\r\n")
+                    #fs.write(base64.standard_b64encode(playlist['Smart Criteria']).decode("utf-8"))                  
+            except itunessmart.EmptyPlaylistException as e:
+                print("`%s` is empty." % playlist['Name'])
+            except itunessmart.PlaylistException as e:
+                print("Skipped `%s`: %s" % (playlist['Name'], str(e)))
+            except Exception as e:
                 try:
                     print("Failed to decode playlist:")
                     print(traceback.format_exc())

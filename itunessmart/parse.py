@@ -10,6 +10,15 @@ from itunessmart.data_structure import *
 
 
 
+class SmartPlaylist:
+    """ Parser result. Contains all decoded playlist data"""
+    
+    def __init__(self, parser):
+        self.output = parser.output
+        self.query = parser.query
+        self.queryTree = parser.queryTree
+        self.ignore = parser.ignore
+
 class SmartPlaylistParser:
     def __init__(self, datastr_info=None, datastr_criteria=None):
         self.is_parsed = False
@@ -36,16 +45,19 @@ class SmartPlaylistParser:
         self.output = ""
         self.ignore = ""
         self.limit = {}
-
+        
         self.subStack = []
-
+    
+    def result(self):
+        assert self.is_parsed
+        return SmartPlaylist(self)
+        
     def parse(self):
         if self.is_parsed:
             return
 
-        if not self.info or not self.data:
-            raise Exception(
-                "Set smart info with data() or strdata() before running parse()")
+        if not hasattr(self, 'info') or not hasattr(self, 'criteria') or not self.info or not self.criteria:
+            raise RuntimeError("Set smart info with data() or strdata() before running parse()")
 
         self.offset = int(Offset.FIELD)
 
@@ -105,6 +117,8 @@ class SmartPlaylistParser:
                     self.ProcessPlaylistField()
                 elif any(self.criteria[self.offset] == e.value for e in CloudFields):
                     self.ProcessCloudField()
+                elif any(self.criteria[self.offset] == e.value for e in LoveFields):
+                    self.ProcessLoveField()
                 elif any(self.criteria[self.offset] == e.value for e in LocationFields):
                     self.ProcessLocationField()
                 elif self.criteria[self.offset] == 0:
@@ -153,9 +167,9 @@ class SmartPlaylistParser:
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
                 else:
-                    print("Unkown field: %s" %
-                          (hex(self.criteria[self.offset])))
-                    self.ignore += "Not processed"
+                    errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
+                    print(errormessage)
+                    self.ignore += "Not processed: %s " % errormessage
                     print(self.criteria[self.offset:self.offset + 100])
 
                 if not self.again:
@@ -311,9 +325,10 @@ class SmartPlaylistParser:
             self.workingQuery += "%')" if end else "')"
             self.workingFull["value"] = self.content
 
+        if len(self.ignore) > 0:
+            self.ignore += self.conjunctionOutput
+        
         if failed:
-            if len(self.ignore) > 0:
-                self.ignore += self.conjunctionOutput
             self.ignore += self.workingOutput
         else:
             if len(self.output) > 0:
@@ -392,9 +407,10 @@ class SmartPlaylistParser:
                         self.workingFull["operator"] = "is not"
                         self.workingFull["value"] = numberA
                 else:
-                    print(
-                        "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" %
-                        (numberA, numberB))
+                    errormessage = "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA, numberB)
+                    print(errormessage)
+                    self.ignore += " Not processed: %s " % errormessage
+                        
                     self.workingOutput += " ##UnkownCase IntField: LogicRule.Other##"
                     self.workingQuery += " ##UnkownCase IntField: LogicRule.Other##"
 
@@ -454,14 +470,17 @@ class SmartPlaylistParser:
                     self.workingFull["value"] = MediaKinds[numberA]
 
             else:
-                print(
-                    "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" %
-                    (numberA, numberB))
+                errormessage = "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA, numberB)
+                print(errormessage)
+                self.ignore += " Not processed: %s " % errormessage
+                    
                 self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
                 self.workingQuery += " ##UnkownCase MediaKindField: LogicRule.Other##"
         else:
-            print("Unkown logic rule in ProcessMediaKindField: LogicRule=%d" %
-                  self.criteria[self.logicRulesOffset])
+            errormessage = "Unkown logic rule in ProcessMediaKindField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += " Not processed: %s " % errormessage
+            
             self.workingOutput += " ##UnkownCase MediaKindField:LogicRule##"
             self.workingQuery += " ##UnkownCase MediaKindField:LogicRule##"
 
@@ -512,8 +531,9 @@ class SmartPlaylistParser:
                     hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
 
         else:
-            print("Unkown logic rule in ProcessPlaylistField: LogicRule=%d" %
-                  self.criteria[self.logicRulesOffset])
+            errormessage = "Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase PlaylistField:LogicRule##"
             self.workingQuery += " ##UnkownCase PlaylistField:LogicRule##"
 
@@ -550,8 +570,9 @@ class SmartPlaylistParser:
             self.workingFull["value"] = value == 1
 
         else:
-            print("Unkown logic rule in ProcessBooleanField: LogicRule=%d" %
-                  self.criteria[self.logicRulesOffset])
+            errormessage = "Unkown logic rule in ProcessBooleanField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase BooleanField:LogicRule##"
             self.workingQuery += " ##UnkownCase BooleanField:LogicRule##"
 
@@ -594,10 +615,56 @@ class SmartPlaylistParser:
                 self.workingFull["value"] = iCloudStatus[number]
 
         else:
-            print("Unkown logic rule in ProcessCloudField: LogicRule=%d" %
-                  self.criteria[self.logicRulesOffset])
+            errormessage = "Unkown logic rule in ProcessCloudField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase CloudField:LogicRule##"
             self.workingQuery += " ##UnkownCase CloudField:LogicRule##"
+
+        self.workingQuery += ")"
+
+        if len(self.output) > 0:
+            self.output += self.conjunctionOutput
+
+        if len(self.query) > 0:
+            self.query += self.conjunctionQuery
+
+        self.output += self.workingOutput
+        self.query += self.workingQuery
+        self.queryTreeCurrent.append((self.workingQuery, self.fieldName))
+        self.fullTreeCurrent.append(self.workingFull)
+
+        self.offset = self.intAOffset + Offset.INTLENGTH
+        if len(self.criteria) > self.offset:
+            self.again = True
+            
+    def ProcessLoveField(self):
+        self.fieldName = LoveFields(self.criteria[self.offset]).name
+        self.workingOutput = self.fieldName
+        self.workingQuery = "(" + self.fieldName
+        self.workingFull = {"field": self.fieldName, "type": "love"}
+
+        if self.criteria[self.logicRulesOffset] == LogicRule.Is:
+            number = self._iTunesUint(
+                self.criteria[self.intAOffset:self.intAOffset + 4])
+
+            if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
+                self.workingOutput += " is %s" % (LoveStatus[number])
+                self.workingQuery += " = '%s'" % (LoveStatus[number])
+                self.workingFull["operator"] = "is"
+                self.workingFull["value"] = LoveStatus[number]
+            else:
+                self.workingOutput += " is not %s" % (LoveStatus[number])
+                self.workingQuery += " != '%s'" % (LoveStatus[number])
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = LoveStatus[number]
+
+        else:
+            errormessage = "Unkown logic rule in ProcessLoveField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += "Not processed: %s " % errormessage
+            self.workingOutput += " ##UnkownCase LoveField:LogicRule##"
+            self.workingQuery += " ##UnkownCase LoveField:LogicRule##"
 
         self.workingQuery += ")"
 
@@ -639,8 +706,9 @@ class SmartPlaylistParser:
                 self.workingFull["value"] = LocationKinds[number]
 
         else:
-            print("Unkown logic rule in ProcessLocationField: LogicRule=%d" %
-                  self.criteria[self.logicRulesOffset])
+            errormessage = "Unkown logic rule in ProcessLocationField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            print(errormessage)
+            self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase LocationField:LogicRule##"
             self.workingQuery += " ##UnkownCase LocationField:LogicRule##"
 
@@ -734,9 +802,10 @@ class SmartPlaylistParser:
                     self.workingOutput += "%d*%d seconds" % (multiple, t)
                     self.workingFull["value_date"] = "%d*%d seconds" % (
                         multiple, t)
-                    print(
-                        "##UnkownCase DateField: LogicRule.Other: multiple '%d' is unkown##" %
-                        multiple)
+                    errormessage = "##UnkownCase DateField: LogicRule.Other: multiple '%d' is unkown##" % multiple
+                    print(errormessage)
+                    self.ignore += " Not processed: %s " % errormessage
+
 
         if len(self.output) > 0:
             self.output += self.conjunctionOutput
