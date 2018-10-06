@@ -33,10 +33,9 @@ setuptools.setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-        "Topic :: Communications :: Chat",
-        "Topic :: Printing",
-        "Topic :: Text Processing :: General"
-    ),
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Topic :: Multimedia :: Sound/Audio",
+        "Topic :: Multimedia :: Sound/Audio :: Players"
+    )
 )
