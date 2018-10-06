@@ -19,7 +19,7 @@ Kodi smart playlists
 
 You can convert all your iTunes smart playlists to Kodi smart playlists with this interactive script: 
 
-`python3 utils/export_xsp.py`  
+`python3 utils/export_xsp.py` or `python3 -m itunessmart`
 
 Then place the resulting .xsp files from `out/` in your [userdata](http://kodi.wiki/view/Userdata) folder.  
 
