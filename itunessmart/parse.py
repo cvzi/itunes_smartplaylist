@@ -2,6 +2,7 @@
 Module holding the parsing algorithm
 """
 
+import logging
 import base64
 import datetime
 import struct
@@ -174,9 +175,9 @@ class SmartPlaylistParser:
                     self.again = True
                 else:
                     errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
-                    print(errormessage)
+                    logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
-                    print(self.criteria[self.offset:self.offset + 100])
+                    logging.debug(self.criteria[self.offset:self.offset + 100])
 
                 if not self.again:
                     break
@@ -414,7 +415,7 @@ class SmartPlaylistParser:
                         self.workingFull["value"] = numberA
                 else:
                     errormessage = "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA, numberB)
-                    print(errormessage)
+                    logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
                         
                     self.workingOutput += " ##UnkownCase IntField: LogicRule.Other##"
@@ -477,14 +478,14 @@ class SmartPlaylistParser:
 
             else:
                 errormessage = "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA, numberB)
-                print(errormessage)
+                logging.warning(errormessage)
                 self.ignore += " Not processed: %s " % errormessage
                     
                 self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
                 self.workingQuery += " ##UnkownCase MediaKindField: LogicRule.Other##"
         else:
             errormessage = "Unkown logic rule in ProcessMediaKindField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
             
             self.workingOutput += " ##UnkownCase MediaKindField:LogicRule##"
@@ -538,7 +539,7 @@ class SmartPlaylistParser:
 
         else:
             errormessage = "Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase PlaylistField:LogicRule##"
             self.workingQuery += " ##UnkownCase PlaylistField:LogicRule##"
@@ -577,7 +578,7 @@ class SmartPlaylistParser:
 
         else:
             errormessage = "Unkown logic rule in ProcessBooleanField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase BooleanField:LogicRule##"
             self.workingQuery += " ##UnkownCase BooleanField:LogicRule##"
@@ -622,7 +623,7 @@ class SmartPlaylistParser:
 
         else:
             errormessage = "Unkown logic rule in ProcessCloudField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase CloudField:LogicRule##"
             self.workingQuery += " ##UnkownCase CloudField:LogicRule##"
@@ -667,7 +668,7 @@ class SmartPlaylistParser:
 
         else:
             errormessage = "Unkown logic rule in ProcessLoveField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += "Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase LoveField:LogicRule##"
             self.workingQuery += " ##UnkownCase LoveField:LogicRule##"
@@ -713,7 +714,7 @@ class SmartPlaylistParser:
 
         else:
             errormessage = "Unkown logic rule in ProcessLocationField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            print(errormessage)
+            logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
             self.workingOutput += " ##UnkownCase LocationField:LogicRule##"
             self.workingQuery += " ##UnkownCase LocationField:LogicRule##"
@@ -809,7 +810,7 @@ class SmartPlaylistParser:
                     self.workingFull["value_date"] = "%d*%d seconds" % (
                         multiple, t)
                     errormessage = "##UnkownCase DateField: LogicRule.Other: multiple '%d' is unkown##" % multiple
-                    print(errormessage)
+                    logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
 
 

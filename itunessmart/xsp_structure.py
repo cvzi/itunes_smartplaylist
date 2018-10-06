@@ -52,15 +52,17 @@ xsp_operators = {
 
 xsp_allowed_operators = xsp_operators.keys()
 
-xsp_sorting = {"SortName" : ["title", "ascending"],
-"SortAlbum" : ["album", "ascending"],
-"SortArtist" : ["artist", "ascending"],
-"Genre" : ["genre", "ascending"],
-"Rating DESC" : ["userrating", "descending"],
-"Rating ASC" : ["userrating", "ascending"],
-"LastPlayed DESC" : ["lastplayed", "descending"],
-"LastPlayed ASC" : ["lastplayed", "ascending"],
-"Plays DESC" : ["playcount", "descending"],
-"Plays ASC" : ["playcount", "ascending"],
-"DateAdded DESC" : ["dateadded ", "descending"],
-"DateAdded ASC" : ["dateadded ", "ascending"]}
+xsp_sorting = {
+"SortName" : ("title", "ascending"),
+"SortAlbum" : ("album", "ascending"),
+"SortArtist" : ("artist", "ascending"),
+"Genre" : ("genre", "ascending"),
+"Rating DESC" : ("userrating", "descending"),
+"Rating ASC" : ("userrating", "ascending"),
+"LastPlayed DESC" : ("lastplayed", "descending"),
+"LastPlayed ASC" : ("lastplayed", "ascending"),
+"Plays DESC" : ("playcount", "descending"),
+"Plays ASC" : ("playcount", "ascending"),
+"DateAdded DESC" : ("dateadded ", "descending"),
+"DateAdded ASC" : ("dateadded ", "ascending")
+}

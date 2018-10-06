@@ -1,15 +1,17 @@
+import os
+import json
+import copy
+
 try:
     import itunessmart
 except ImportError:
-    import os
     import sys
     include = os.path.relpath(os.path.join(os.path.dirname(__file__), ".."))
     sys.path.insert(0, include)
     import itunessmart
     print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
-import json
-import copy
+
 
 verbose = True
 
@@ -435,7 +437,8 @@ testdata = [
             "order": "RANDOM()",
             "onlychecked": True,
             "liveupdate": True,
-        }
+        },
+        "xsp" : [('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="lastplayed" operator="before">\n        <value>1507248000</value>\n    </rule>\n    <limit>25</limit>\n    <order>random</order>\n</smartplaylist>')]
     },
     {
         "desc" : "Non-existing field 0xc6",
@@ -446,6 +449,40 @@ testdata = [
             "ignore": "Not processed: Unkown field: 0xc6 "
         }
     },
+    {
+        "desc" : "order by ",
+        "info" : ("AQEBAwAAAAcAAAAZAAAAAAAAAAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAA=="),
+        "criteria" : ("U0xzdAABAAEAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAU0xzdAABAAEAAAACAAAAAQAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAADwAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAABEAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAB"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAg"
+            "AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWRTTHN0AAEAAQAAAAMAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAARwEAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAgAQwBoAGkAcAAAAAMBAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAmAEwAZQBhAGcAdQBlACAAbwBmACAATQB5ACAATwB3"
+            "AG4AIABJAEkAAAADAwAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "AAAAAAAAAAAABgBJAEkASQ=="),
+        "expected" : {
+            "query": "(lower(AlbumArtist) Like '%chip%') AND (lower(Album) Like 'league of my own ii%') AND (lower(Album) NOT LIKE '%iii%')",
+            "number": 25,
+            "type": "Items",
+            "order": "SortArtist",
+            "ignore": ""
+        },
+        "xsp" : [('zzzsub_0e0db45ffe89e65c0b8396121fe654a1', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>17</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>18</value>\n    </rule>\n\n</smartplaylist>'), ('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="albumartist" operator="endswith">\n        <value>Chip</value>\n    </rule>\n    <rule field="album" operator="startswith">\n        <value>League of My Own II</value>\n    </rule>\n    <rule field="album" operator="doesnotcontain">\n        <value>III</value>\n    </rule>\n    <rule field="playlist" operator="is">\n        <value>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</value>\n    </rule>\n    <limit>25</limit>\n    <order direction="artist">ascending</order>\n</smartplaylist>')]
+    },
+    
 
   
 ]
@@ -484,10 +521,6 @@ def test_examples():
             
         if "xsp" in test:
             xsp = itunessmart.createXSP(name="example", smartPlaylist=parser.result, createSubplaylists=True)
-            
-            print(xsp)
-            print(test["xsp"])
-            
             assert xsp == test["xsp"]
             
             
@@ -511,6 +544,10 @@ def test_library_minimal():
     assert parser.result.query == "(lower(Album) = 'league of my own ii')"
     
     
+    mapping = itunessmart.generatePersistentIDMapping(library)
+    assert mapping['38822E892B8D332A'] == "Chip - League of My Own II"
+    
+    
 def test_bytes_parser():
     library = readLibrary("library_minimal.xml")
     
@@ -531,7 +568,7 @@ def test_library_onlysmartplaylists():
     
     playlist = library['Playlists'][15]
     assert 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']
-    print(playlist['Name'])
+    
     assert playlist['Name'] == "Aceyalone - Leanin' on Slick"
     
     parser = itunessmart.BytesParser(playlist['Smart Info'],playlist['Smart Criteria'])
@@ -579,6 +616,11 @@ def test_xsp_minimal():
 </smartplaylist>"""
     assert xsp == expected
     
+    # Clean up
+    for file in files:
+        os.remove(file)
+    
+    
 def test_xsp_errors():
     parser = itunessmart.Parser(testdata[13]["info"], testdata[13]["criteria"])
     
@@ -590,7 +632,50 @@ def test_xsp_errors():
         assert type(e) == itunessmart.xsp.PlaylistException
     
 
+def test_xsp_subplaylists():
+    library = readLibrary("library_onlysmartplaylists.xml")
+    persistentIDMapping = itunessmart.generatePersistentIDMapping(library)
+    parser = itunessmart.Parser()
+    files = []
+    for playlist in library['Playlists']:
+        if 'Name' in playlist:
+            if 'HipHop' in playlist['Name'] or 'rap' in playlist['Name']:
+                parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
+                files += itunessmart.createXSPFile(directory='.', name=playlist['Name'], smartPlaylist=parser.result, createSubplaylists=True, persistentIDMapping=persistentIDMapping)
+    
 
+    with open("HipHop.xsp", "r") as f:
+        xsp = f.read()
+        
+        # Rule: is playlist
+        assert '''<rule field="playlist" operator="is">
+        <value>Deutschrap</value>
+    </rule>''' in xsp
+        
+        # Subplaylists match:
+        rules = xsp.split('<rule field="playlist"')[1:]
+        for rule in rules:
+            subname = rule.split('<value>')[1].split('</value>')[0]
+            filename = "%s.xsp" % subname
+            assert os.path.isfile(filename)
+    
+    # XML escaped character
+    with open("HipHop2000.xsp", "r") as f:
+        xsp = f.read()
+        name = xsp.split("<name>")[1].split("</name>")[0].strip()
+        
+        assert name == "HipHop&lt;2000"
+    
+    # Rule: global OR
+    with open("Deutschrap.xsp", "r") as f:
+        xsp = f.read()
+        assert "<match>one</match>" in xsp
+    
+    
+    # Clean up
+    for file in files:
+        if os.path.isfile(file):
+            os.remove(file)
 
 def run_all():
     for fname, f in list(globals().items()):

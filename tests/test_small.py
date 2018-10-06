@@ -1,15 +1,17 @@
+import json
+import copy
+import os
+
 try:
     import itunessmart
 except ImportError:
-    import os
     import sys
     include = os.path.relpath(os.path.join(os.path.dirname(__file__), ".."))
     sys.path.insert(0, include)
     import itunessmart
     print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
-import json
-import copy
+
 
 testdata = [
     {
