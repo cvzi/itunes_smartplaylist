@@ -326,7 +326,7 @@ testdata = [
         "expected" : {
             "query" : "(Plays > 15) AND ( (Plays > 16) OR (Plays > 17) OR (Plays > 18) ) AND (Rating > 4)"
         },
-        "xsp" : [('zzzsub_0e0db45ffe89e65c0b8396121fe654a1', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>17</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>18</value>\n    </rule>\n\n</smartplaylist>'), ('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>15</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n        <value>17</value>\n        <value>18</value>\n    </rule>\n    <rule field="userrating" operator="greaterthan">\n        <value>4</value>\n    </rule>\n    <rule field="playlist" operator="is">\n        <value>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</value>\n    </rule>\n\n\n</smartplaylist>')]
+        "xsp" : [('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>15</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n        <value>17</value>\n        <value>18</value>\n    </rule>\n    <rule field="userrating" operator="greaterthan">\n        <value>4</value>\n    </rule>\n\n\n</smartplaylist>')]
     },
     {
         "desc" : "Location is/not on Computer/iCloud",
@@ -480,7 +480,7 @@ testdata = [
             "order": "SortArtist",
             "ignore": ""
         },
-        "xsp" : [('zzzsub_0e0db45ffe89e65c0b8396121fe654a1', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>17</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>18</value>\n    </rule>\n\n</smartplaylist>'), ('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="albumartist" operator="endswith">\n        <value>Chip</value>\n    </rule>\n    <rule field="album" operator="startswith">\n        <value>League of My Own II</value>\n    </rule>\n    <rule field="album" operator="doesnotcontain">\n        <value>III</value>\n    </rule>\n    <rule field="playlist" operator="is">\n        <value>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</value>\n    </rule>\n    <limit>25</limit>\n    <order direction="artist">ascending</order>\n</smartplaylist>')]
+        "xsp" : [('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="albumartist" operator="endswith">\n        <value>Chip</value>\n    </rule>\n    <rule field="album" operator="startswith">\n        <value>League of My Own II</value>\n    </rule>\n    <rule field="album" operator="doesnotcontain">\n        <value>III</value>\n    </rule>\n    <limit>25</limit>\n    <order direction="artist">ascending</order>\n</smartplaylist>')]
     },
     
 
@@ -520,12 +520,14 @@ def test_examples():
             raise NotImplementedError(test["desc"])
             
         if "xsp" in test:
-            print(parser.result)
-            xsp = itunessmart.createXSP(name="example", smartPlaylist=parser.result, createSubplaylists=True)
-            print(xsp)
-            print(test["xsp"])
+            xsp = itunessmart.createXSP(name="example", smartPlaylist=result, createSubplaylists=True)
             assert xsp == test["xsp"]
-            
+        
+        parser.result = None
+        parser = None
+        result = None
+        xsp = None
+        
             
 def readLibrary(filename):
     path = os.path.join(os.path.dirname(__file__), filename)
