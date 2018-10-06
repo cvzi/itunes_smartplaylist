@@ -520,7 +520,10 @@ def test_examples():
             raise NotImplementedError(test["desc"])
             
         if "xsp" in test:
+            print(parser.result)
             xsp = itunessmart.createXSP(name="example", smartPlaylist=parser.result, createSubplaylists=True)
+            print(xsp)
+            print(test["xsp"])
             assert xsp == test["xsp"]
             
             
@@ -618,7 +621,8 @@ def test_xsp_minimal():
     
     # Clean up
     for file in files:
-        os.remove(file)
+        if os.path.isfile(file):
+            os.remove(file)
     
     
 def test_xsp_errors():
