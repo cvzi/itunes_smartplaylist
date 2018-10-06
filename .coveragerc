@@ -1,6 +1,6 @@
 [run]
 source = itunessmart
-
+omit = itunessmart/__main__.py
 [report]
 exclude_lines =
     pragma: no cover
