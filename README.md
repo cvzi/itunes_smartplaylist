@@ -1,6 +1,11 @@
 iTunes Smartplaylist parser
 ===========================
 
+[![foodemoji on PyPI](https://img.shields.io/pypi/v/itunessmart.svg)](https://pypi.python.org/pypi/itunessmart)
+[![Python Versions](https://img.shields.io/pypi/pyversions/itunessmart.svg)](https://pypi.python.org/pypi/itunessmart)
+[![Coverage Status](https://coveralls.io/repos/github/cvzi/itunes_smartplaylist/badge.svg?branch=RefactorToClasses)](https://coveralls.io/github/cvzi/itunes_smartplaylist?branch=RefactorToClasses)
+[![Build Status](https://travis-ci.org/cvzi/itunes_smartplaylist.svg?branch=master)](https://travis-ci.org/cvzi/itunes_smartplaylist)
+
 Convert smart playlist information to a readable form.
 
 This module is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
