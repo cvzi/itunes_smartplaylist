@@ -14,7 +14,8 @@ script:
   - python setup.py test
   - pytest
   - nosetests
-  - coverage run -a tests/test_*.py
+  - coverage run -a tests/test_small.py
+  - coverage run -a tests/test_full.py
 # must be last (coverage will not track an installed module)
   - python setup.py install 
 after_success:
