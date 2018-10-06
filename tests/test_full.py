@@ -9,7 +9,9 @@ except ImportError:
     print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
 import json
+import copy
 
+verbose = True
 
 testdata = [
     {
@@ -39,7 +41,8 @@ testdata = [
                       "AAAAAAAPQj8AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
         "expected" : {
             "output" : "Plays is 999999"
-        }
+        },
+        "xsp" : [('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="playcount" operator="is">\n        <value>999999</value>\n    </rule>\n\n\n</smartplaylist>')]
     },
     {
         "desc" : "only int range: 512 - 999999",
@@ -309,7 +312,8 @@ testdata = [
         "criteria" : ("U0xzdAABAAEAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/FNMc3QAAQABAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEQAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAAABIAAAAAAAAAAAAAAAAAAAABAAAAAAAAABIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAQAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA"),
         "expected" : {
             "query" : "(Plays > 15) AND ( (Plays > 16) AND (Plays > 17) AND (Plays > 18) ) AND (Rating > 4)"
-        }
+        },
+        "xsp" : [('zzzsub_0e0db45ffe89e65c0b8396121fe654a1', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>17</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>18</value>\n    </rule>\n\n</smartplaylist>'), ('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>15</value>\n    </rule>\n    <rule field="userrating" operator="greaterthan">\n        <value>4</value>\n    </rule>\n    <rule field="playlist" operator="is">\n        <value>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</value>\n    </rule>\n\n\n</smartplaylist>')]
     },
     {
         "desc" : "Sub expression: Plays > 15 ANY:(  PLAYS > 16 AND PLAYS > 17 ) RATING > 4",
@@ -319,7 +323,8 @@ testdata = [
         "criteria" :"U0xzdAABAAEAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/FNMc3QAAQABAAAAAwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEQAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAAABIAAAAAAAAAAAAAAAAAAAABAAAAAAAAABIAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAQAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "expected" : {
             "query" : "(Plays > 15) AND ( (Plays > 16) OR (Plays > 17) OR (Plays > 18) ) AND (Rating > 4)"
-        }
+        },
+        "xsp" : [('zzzsub_0e0db45ffe89e65c0b8396121fe654a1', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>17</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>18</value>\n    </rule>\n\n</smartplaylist>'), ('example', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n<smartplaylist type="songs">\n    <name>example</name>\n    <match>all</match>\n    <rule field="playcount" operator="greaterthan">\n        <value>15</value>\n    </rule>\n    <rule field="playcount" operator="greaterthan">\n        <value>16</value>\n        <value>17</value>\n        <value>18</value>\n    </rule>\n    <rule field="userrating" operator="greaterthan">\n        <value>4</value>\n    </rule>\n    <rule field="playlist" operator="is">\n        <value>zzzsub_0e0db45ffe89e65c0b8396121fe654a1</value>\n    </rule>\n\n\n</smartplaylist>')]
     },
     {
         "desc" : "Location is/not on Computer/iCloud",
@@ -446,8 +451,8 @@ testdata = [
 ]
 
 
-def test_examples(verbose=False):
-    for test in testdata:
+def test_examples():
+    for test in copy.deepcopy(testdata):
         parser = itunessmart.Parser(test["info"], test["criteria"])
         result = parser.result
         if verbose:
@@ -476,7 +481,16 @@ def test_examples(verbose=False):
                 assert exp[key] == result.queryTree[key]
         else:
             raise NotImplementedError(test["desc"])
-
+            
+        if "xsp" in test:
+            xsp = itunessmart.createXSP(name="example", smartPlaylist=parser.result, createSubplaylists=True)
+            
+            print(xsp)
+            print(test["xsp"])
+            
+            assert xsp == test["xsp"]
+            
+            
 def readLibrary(filename):
     path = os.path.join(os.path.dirname(__file__), filename)
     with open(path, "rb") as fs:
@@ -495,20 +509,98 @@ def test_library_minimal():
     parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
     
     assert parser.result.query == "(lower(Album) = 'league of my own ii')"
+    
+    
+def test_bytes_parser():
+    library = readLibrary("library_minimal.xml")
+    
+    playlist = library['Playlists'][1]
+    assert 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']
+    assert playlist['Name'] == "Chip - League of My Own II"
+    
+    parser = itunessmart.BytesParser(playlist['Smart Info'],playlist['Smart Criteria'])
+    
+    parser.update_data_base64(testdata[0]["info"], testdata[0]["criteria"])
+    
+    assert testdata[0]["expected"]["query"] == parser.result.query
+
+    
+
+def test_library_onlysmartplaylists():
+    library = readLibrary("library_onlysmartplaylists.xml")
+    
+    playlist = library['Playlists'][15]
+    assert 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']
+    print(playlist['Name'])
+    assert playlist['Name'] == "Aceyalone - Leanin' on Slick"
+    
+    parser = itunessmart.BytesParser(playlist['Smart Info'],playlist['Smart Criteria'])
+    
+    assert parser.result.query == "(lower(AlbumArtist) = 'aceyalone') AND (lower(Album) = 'leanin' on slick')"
+    
+    
+    root, playlistByPersistentId = itunessmart.createPlaylistTree(library)
+    
+    assert root.parent is None
+    
+    for child in root.children:
+        if child.data["Playlist ID"] == 84196:
+            playlist = child.data
+            parser = itunessmart.BytesParser(playlist['Smart Info'], playlist['Smart Criteria'])
+            assert parser.result.query == "(lower(Artist) LIKE '%adele%') OR (lower(Artist) LIKE '%austin howard brown%') OR (lower(Artist) LIKE '%churchill%') OR (lower(Artist) LIKE '%duenday%') OR (lower(Artist) LIKE '%gnarls barkley%') OR ( (lower(Artist) LIKE '%jack white%') AND (lower(Name) LIKE '%blue light%') ) OR (lower(Artist) LIKE '%more than lights%') OR (lower(Artist) LIKE '%santogold%') OR (lower(Artist) LIKE '%sutcliffe%') OR (lower(Artist) LIKE '%zz ward%')"
+    
+    
+def test_xsp_minimal():
+    library = readLibrary("library_minimal.xml")
+    
+    playlist = library['Playlists'][1]
+    assert playlist['Name'] == "Chip - League of My Own II"
+    
+    parser = itunessmart.Parser()
+    parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
+    
+    assert parser.result.query == "(lower(Album) = 'league of my own ii')"
+    
+    files = itunessmart.createXSPFile(directory=".", name=playlist['Name'], smartPlaylist=parser.result, createSubplaylists=True)
+    
+    assert len(files) == 1
+    
+    with open(files[0], "r") as f:
+        xsp = f.read()
+    expected = """<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<smartplaylist type="songs">
+    <name>Chip - League of My Own II</name>
+    <match>all</match>
+    <rule field="album" operator="is">
+        <value>League of My Own II</value>
+    </rule>
+
+
+</smartplaylist>"""
+    assert xsp == expected
+    
+def test_xsp_errors():
+    parser = itunessmart.Parser(testdata[13]["info"], testdata[13]["criteria"])
+    
+    assert parser.result.query == "(MediaKind != 'Home Video')"
+    
+    try:
+        files = itunessmart.createXSP(name="example", smartPlaylist=parser.result, createSubplaylists=False)
+    except Exception as e:
+        assert type(e) == itunessmart.xsp.PlaylistException
+    
 
 
 
-
-
-
-
-
-
-
+def run_all():
+    for fname, f in list(globals().items()):
+        if fname.startswith('test_'):
+            print("%s()" % fname)
+            f()
+            print("Ok.")
 
 
 
 if __name__ == '__main__':
-    test_examples(verbose=True)
-    test_library_minimal()
+    run_all()
 

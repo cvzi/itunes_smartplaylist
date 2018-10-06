@@ -9,7 +9,7 @@ except ImportError:
     print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
 import json
-
+import copy
 
 testdata = [
     {
@@ -218,7 +218,7 @@ testdata = [
 ]
 
 def test_examples(verbose=False):
-    for test in testdata:
+    for test in copy.deepcopy(testdata):
         parser = itunessmart.Parser(test["info"], test["criteria"])
         result = parser.result
         if verbose:
@@ -255,6 +255,7 @@ def test_double_parse():
     assert query == parser.result.query
     parser._parser.parse()
     assert query == parser.result.query
+    
     
 def test_reuse_parser():
     parser0 = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])

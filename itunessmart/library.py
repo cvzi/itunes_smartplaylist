@@ -5,7 +5,7 @@ Module for iTunes Library and library file `iTunes Music Library.xml`
 import time
 import datetime
 import base64
-from typing import BinaryIO
+from typing import BinaryIO, Tuple, Dict
 
 try:
     import xml.etree.cElementTree as ET
@@ -17,7 +17,7 @@ class Library(dict):
     
 
 
-def generatePersistentIDMapping(library: Library):
+def generatePersistentIDMapping(library: Library) -> Dict[str, str]:
     """Create a mapping from playlist id to playlist name. Necessary for converting rules concerning other playlists to xsp.
     :param dict library: the result of readiTunesLibrary()
     :return: persistentIDMapping
@@ -29,7 +29,7 @@ def generatePersistentIDMapping(library: Library):
             persistentIDMapping[playlist['Playlist Persistent ID']] = playlist["Name"]
     return persistentIDMapping
 
-def readiTunesLibrary(libraryFileStream: BinaryIO):
+def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
     """Read itunes library file `iTunes Music Library.xml` and return dict
     :param stream libraryFileStream: file `iTunes Music Library.xml`
     :return: iTunes library content
@@ -123,7 +123,7 @@ class Node:
     def __repr__(self):
         return "%s #%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name",str(self.data['Playlist Persistent ID']) if 'Playlist Persistent ID' in self.data else "")
     
-def createPlaylistTree(library: Library):
+def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
     """ Create playlist tree
     :param Library library: the result of readiTunesLibrary()
     :return: Return the tree and a mapping from PersistentId to playlist: (rootNode, playlistByPersistentId_dict)

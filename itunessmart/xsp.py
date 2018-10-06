@@ -7,7 +7,7 @@ import unicodedata
 import re
 import html
 import os.path
-from typing import Callable
+from typing import Callable, List, Tuple
 
 from itunessmart.xsp_structure import *
 from itunessmart.parse import SmartPlaylist
@@ -20,7 +20,7 @@ class PlaylistException(Exception):
 class EmptyPlaylistException(PlaylistException):
     pass
 
-def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, friendlyFilename: Callable[[str], str] = None):
+def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, friendlyFilename: Callable[[str], str] = None) -> List[str]:
     """ Create XSP playlist file(s) from the parser result queryTree, returns a list of filenames of the generates files
     :param str directory: the output directory
     :param str name: the new name of the playlist
@@ -49,7 +49,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
     
     return r
 
-def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, subPlaylistPrefix: str = "zzzsub_"):
+def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, subPlaylistPrefix: str = "zzzsub_") -> List[Tuple[str, str]]:
     """ Create XSP playlist(s) from the parser result queryTree, returns a list of tuples (playlist_name, xml_content)
     :param str name: the new name of the playlist
     :param SmartPlaylist smartPlaylist: the result of the parser

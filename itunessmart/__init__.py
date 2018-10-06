@@ -21,14 +21,15 @@ class Parser:
         self._parser.parse()
         self.result = self._parser.result()
 
-    def update_data_base64(self, datastr_info: str, datastr_criteria: str):
+    def update_data_base64(self, datastr_info: str, datastr_criteria: str) -> SmartPlaylist:
         self._parser.str_data(datastr_info, datastr_criteria)
         self._update()
+        return self.result
         
-    def update_data_bytes(self, data_info: bytes, data_criteria: bytes):
+    def update_data_bytes(self, data_info: bytes, data_criteria: bytes) -> SmartPlaylist:
         self._parser.data(data_info, data_criteria)
         self._update()
-
+        return self.result
 
 class BytesParser(Parser):
     """Parse data from raw bytes"""

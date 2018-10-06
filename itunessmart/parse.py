@@ -5,7 +5,7 @@ Module holding the parsing algorithm
 import base64
 import datetime
 import struct
-
+import json
 from itunessmart.data_structure import *
 
 
@@ -18,6 +18,12 @@ class SmartPlaylist:
         self.query = parser.query
         self.queryTree = parser.queryTree
         self.ignore = parser.ignore
+        
+    def __str__(self):
+        return "SmartPlaylist(`%s`)" % self.query
+        
+    def __repr__(self):
+        return "SmartPlaylist(%s)" % json.dumps({"queryTree": self.queryTree, "ignore":self.ignore}, indent=2)
 
 class SmartPlaylistParser:
     def __init__(self, datastr_info=None, datastr_criteria=None):
