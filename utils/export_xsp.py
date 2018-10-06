@@ -15,7 +15,15 @@ except ImportError:
     import itunessmart
     print("# Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
-
+def printWithoutException(s):
+    try:
+        print(s)
+    except UnicodeEncodeError:
+        try:
+            print(str(s).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding))
+        except UnicodeEncodeError:
+            print(str(s).encode('ascii', errors='replace').decode('ascii'))
+    
 
 if __name__ == "__main__":
 
@@ -65,9 +73,9 @@ if __name__ == "__main__":
                 try:
                     print("! Failed to decode playlist:")
                     print(traceback.format_exc())
-                    print(playlist['Name'])
+                    printWithoutException(playlist['Name'])
                 except:
-                    print(playlist)
+                    printWithoutException(playlist)
             
             if not parser.result:
                 continue
@@ -77,25 +85,25 @@ if __name__ == "__main__":
                 if export_all:
                     itunessmart.createXSPFile(directory=outputDirectory, name=playlist['Name'], smartPlaylist=parser.result, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
             except itunessmart.EmptyPlaylistException as e:
-                print("! `%s` is empty." % playlist['Name'])
+                printWithoutException("! `%s` is empty." % playlist['Name'])
             except itunessmart.PlaylistException as e:
-                print("! Skipped `%s`: %s" % (playlist['Name'], str(e)))
+                printWithoutException("! Skipped `%s`: %s" % (playlist['Name'], str(e)))
             except Exception as e:
                 try:
                     print("! Failed to convert playlist:")
                     print(traceback.format_exc())
-                    print(playlist['Name'])
+                    printWithoutException(playlist['Name'])
                 except:
-                    print(playlist)
+                    printWithoutException(playlist)
                     
                     
                     
     if not export_all:
         i = 1
         for p_name,_ in res:
-            print("# %02d: %s" % (i, p_name))
+            printWithoutException("# %02d: %s" % (i, p_name))
             i +=1 
-            
+        
         while True:
             i = input("# Please give the number of the playlist (0 to exit): ")
             if i in ("0",""):
@@ -103,18 +111,18 @@ if __name__ == "__main__":
             
             i = int(i)
             p_name, p_result = res[i-1]
-            print("# Converting Playlist: %s" % p_name)
+            printWithoutException("# Converting Playlist: %s" % p_name)
             try:
                 itunessmart.createXSPFile(directory=outputDirectory, name=p_name, smartPlaylist=p_result, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
             except itunessmart.EmptyPlaylistException as e:
-                print("! `%s` is empty." % p_name)
+                printWithoutException("! `%s` is empty." % p_name)
             except itunessmart.PlaylistException as e:
-                print("! Skipped `%s`: %s" % (p_name, str(e)))
+                printWithoutException("! Skipped `%s`: %s" % (p_name, str(e)))
             except Exception as e:
                 try:
                     print("! Failed to convert playlist:")
                     print(traceback.format_exc())
-                    print(p_name)
+                    printWithoutException(p_name)
                 except:
                     print(p_result)
                     
