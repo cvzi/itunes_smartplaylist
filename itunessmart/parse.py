@@ -63,7 +63,7 @@ class SmartPlaylistParser:
         if self.is_parsed:
             return
 
-        if not hasattr(self, 'info') or not hasattr(self, 'criteria') or not self.info or not self.criteria:
+        if not hasattr(self, 'info') or not hasattr(self, 'criteria') or not self.info or not self.criteria: # pragma: no cover
             raise RuntimeError("Set smart info with data() or strdata() before running parse()")
 
         self.offset = int(Offset.FIELD)
@@ -173,7 +173,7 @@ class SmartPlaylistParser:
 
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
-                else:
+                else: # pragma: no cover
                     errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
                     logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
@@ -413,7 +413,7 @@ class SmartPlaylistParser:
                         self.workingQuery += " != %d" % numberA
                         self.workingFull["operator"] = "is not"
                         self.workingFull["value"] = numberA
-                else:
+                else: # pragma: no cover
                     errormessage = "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA, numberB)
                     logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
@@ -476,14 +476,14 @@ class SmartPlaylistParser:
                     self.workingFull["operator"] = "is not"
                     self.workingFull["value"] = MediaKinds[numberA]
 
-            else:
+            else: # pragma: no cover
                 errormessage = "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA, numberB)
                 logging.warning(errormessage)
                 self.ignore += " Not processed: %s " % errormessage
                     
                 self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
                 self.workingQuery += " ##UnkownCase MediaKindField: LogicRule.Other##"
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessMediaKindField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -537,7 +537,7 @@ class SmartPlaylistParser:
                 self.workingFull["value"] = "%s%s" % (
                     hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
 
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -576,7 +576,7 @@ class SmartPlaylistParser:
             self.workingFull["operator"] = "is"
             self.workingFull["value"] = value == 1
 
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessBooleanField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -621,7 +621,7 @@ class SmartPlaylistParser:
                 self.workingFull["operator"] = "is not"
                 self.workingFull["value"] = iCloudStatus[number]
 
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessCloudField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -666,7 +666,7 @@ class SmartPlaylistParser:
                 self.workingFull["operator"] = "is not"
                 self.workingFull["value"] = LoveStatus[number]
 
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessLoveField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += "Not processed: %s " % errormessage
@@ -712,7 +712,7 @@ class SmartPlaylistParser:
                 self.workingFull["operator"] = "is not"
                 self.workingFull["value"] = LocationKinds[number]
 
-        else:
+        else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessLocationField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -805,7 +805,7 @@ class SmartPlaylistParser:
                 elif multiple == 2628000:
                     self.workingOutput += "%d months" % t
                     self.workingFull["value_date"] = "%d months" % t
-                else:
+                else: # pragma: no cover
                     self.workingOutput += "%d*%d seconds" % (multiple, t)
                     self.workingFull["value_date"] = "%d*%d seconds" % (
                         multiple, t)
