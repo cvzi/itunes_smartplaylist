@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
-# Export smart playlists from "iTunes Music Library.xml" to xsp files for Kodi
+"""Export smart playlists from "iTunes Music Library.xml" to xsp files for Kodi"""
+
+__all__ = ["main"]
 
 import os
 import traceback
@@ -31,15 +33,40 @@ def printWithoutException(s):
             print(str(s).encode('ascii', errors='replace').decode('ascii'))
     
 
-if __name__ == "__main__":
+def main(iTunesLibraryFile=None, outputDirectory=None):
 
-    EXPORT_NESTED_RULES_AS_SUBPLAYLIST = True
+    if iTunesLibraryFile == "--help" or iTunesLibraryFile == "-h" or iTunesLibraryFile == "/?":
+        print("""Export smart playlists from 'iTunes Music Library.xml' to .xsp files for Kodi.
+This interactive script uses the default iTunes library, but you may also specify a xml file:
 
+Optional arguments:
 
-    home = os.path.expanduser("~")
-    folder = os.path.join(home,"Music/iTunes");
-    iTunesLibraryFile = os.path.join(folder,"iTunes Music Library.xml")
+python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
 
+{iTunesLibraryFile}\t - Default is ~\\Music\\iTunes\\iTunes Music Library.xml
+{outputDirectory}\t - Default is ./out/""")
+        return
+
+    export_sub_playlists = True
+
+    if not iTunesLibraryFile:
+        home = os.path.expanduser("~")
+        folder = os.path.join(home,"Music/iTunes")
+        iTunesLibraryFile = os.path.join(folder,"iTunes Music Library.xml")
+    elif not os.path.isfile(iTunesLibraryFile):
+        if os.path.isfile(os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")):
+            iTunesLibraryFile = os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")
+    
+    while not os.path.isfile(iTunesLibraryFile):
+        iTunesLibraryFile = input("# Please enter the path of your `iTunes Music Library.xml`: ")
+        if os.path.isfile(iTunesLibraryFile):
+            break
+        elif os.path.isfile(os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")):
+            iTunesLibraryFile = os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")
+            break
+        else:
+            print("! Could not find file `%s`")
+    
     print("# Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
         # Read XML file 
@@ -56,13 +83,14 @@ if __name__ == "__main__":
     
     userinput = input("# Do you want to export nested rules to sub-playlists? (yes/no) ")
     if userinput.lower() in ("n","no", "0"):
-        EXPORT_NESTED_RULES_AS_SUBPLAYLIST = False
+        export_sub_playlists = False
         
     # Decode and export all smart playlists
 
     parser = itunessmart.Parser()
 
-    outputDirectory = os.path.abspath("out")
+    if outputDirectory is None:
+        outputDirectory = os.path.abspath("out")
 
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
@@ -89,7 +117,7 @@ if __name__ == "__main__":
             try:
                 res.append((playlist['Name'], parser.result))
                 if export_all:
-                    itunessmart.createXSPFile(directory=outputDirectory, name=playlist['Name'], smartPlaylist=parser.result, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
+                    itunessmart.createXSPFile(directory=outputDirectory, name=playlist['Name'], smartPlaylist=parser.result, createSubplaylists=export_sub_playlists, persistentIDMapping=persistentIDMapping)
             except itunessmart.EmptyPlaylistException as e:
                 printWithoutException("! `%s` is empty." % playlist['Name'])
             except itunessmart.PlaylistException as e:
@@ -119,7 +147,7 @@ if __name__ == "__main__":
             p_name, p_result = res[i-1]
             printWithoutException("# Converting Playlist: %s" % p_name)
             try:
-                itunessmart.createXSPFile(directory=outputDirectory, name=p_name, smartPlaylist=p_result, createSubplaylists=EXPORT_NESTED_RULES_AS_SUBPLAYLIST, persistentIDMapping=persistentIDMapping)
+                itunessmart.createXSPFile(directory=outputDirectory, name=p_name, smartPlaylist=p_result, createSubplaylists=export_sub_playlists, persistentIDMapping=persistentIDMapping)
             except itunessmart.EmptyPlaylistException as e:
                 printWithoutException("! `%s` is empty." % p_name)
             except itunessmart.PlaylistException as e:
@@ -138,3 +166,5 @@ if __name__ == "__main__":
     userdata = os.path.expandvars(r"%appdata%\kodi\userdata\playlists\music") if os.path.exists(os.path.expandvars(r"%appdata%\kodi\userdata")) else os.path.expanduser(r"~/Library/Application Support/Kodi/userdata/playlists/music")
     print("# You may copy the .xsp files to %s" % userdata)
 
+if __name__ == "__main__":
+    main(*sys.argv[1:])
