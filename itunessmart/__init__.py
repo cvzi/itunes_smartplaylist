@@ -31,11 +31,11 @@ SOFTWARE.
 """
 
 
-__all__ = ["Parser", "SmartPlaylist", "BytesParser", "createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException", "readiTunesLibrary", "generatePersistentIDMapping", "createPlaylistTree"]
+__all__ = ["Parser", "SmartPlaylist", "BytesParser", "createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException", "readiTunesLibrary", "generatePersistentIDMapping", "createPlaylistTree", "LibraryException"]
 
 from itunessmart.parse import SmartPlaylistParser, SmartPlaylist
 from itunessmart.xsp import createXSPFile, createXSP, PlaylistException, EmptyPlaylistException
-from itunessmart.library import readiTunesLibrary, generatePersistentIDMapping, createPlaylistTree
+from itunessmart.library import readiTunesLibrary, generatePersistentIDMapping, createPlaylistTree, LibraryException
 
 
 class Parser:

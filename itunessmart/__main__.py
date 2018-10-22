@@ -104,11 +104,11 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
             try:
                 parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
             except Exception as e:
+                print("! Failed to decode playlist:")
                 try:
-                    print("! Failed to decode playlist:")
                     print(traceback.format_exc())
                     printWithoutException(playlist['Name'])
-                except:
+                except KeyError:
                     printWithoutException(playlist)
 
             if not parser.result:
@@ -123,11 +123,11 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
             except itunessmart.PlaylistException as e:
                 printWithoutException("! Skipped `%s`: %s" % (playlist['Name'], str(e)))
             except Exception as e:
+                print("! Failed to convert playlist:")
                 try:
-                    print("! Failed to convert playlist:")
                     print(traceback.format_exc())
                     printWithoutException(playlist['Name'])
-                except:
+                except KeyError:
                     printWithoutException(playlist)
 
 

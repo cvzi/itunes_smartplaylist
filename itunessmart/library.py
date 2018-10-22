@@ -15,7 +15,8 @@ except ImportError:
 class Library(dict):
     pass
 
-
+class LibraryException(Exception):
+    pass
 
 def generatePersistentIDMapping(library: Library) -> Dict[str, str]:
     """Create a mapping from playlist id to playlist name. Necessary for converting rules concerning other playlists to xsp.
@@ -38,8 +39,10 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
     parser = ET.iterparse(libraryFileStream, events=('start','end'))
     _, plist = next(parser)
 
-    assert plist.tag == "plist"
-    assert plist.attrib['version'] == "1.0"
+    if plist.tag != "plist":
+        raise LibraryException("Root element is not <plist> element")
+    if plist.attrib['version'] != "1.0":
+        raise LibraryException("<plist> version is not 1.0")
 
     current = Library()
     current_islist = False # current can be dict or list
@@ -80,10 +83,10 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                 pass
             elif elem.tag == 'dict':
                 current = parent.pop()
-                current_islist = type(current) is list
+                current_islist = isinstance(current, list)
             elif elem.tag == 'array':
                 current = parent.pop()
-                current_islist = type(current) is list
+                current_islist = isinstance(current, list)
             else:
                 if elem.tag == 'true':
                     elem.text = True
@@ -113,7 +116,7 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
 
 class Node:
     def __init__(self,data):
-        if type(data) is str:
+        if isinstance(data, str):
             data = {'Name':data}
         self.data = data
         self.children = []
