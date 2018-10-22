@@ -34,7 +34,7 @@ MediaKinds = {
     0x200000 : "iTunes U",
     0xC00000 : "Book",
     # TODO mediakinds of toplevel playlists
-    # The following are only used in the toplevel playlists: Music, TV Shows, Movies and Books 
+    # The following are only used in the toplevel playlists: Music, TV Shows, Movies and Books
     # (These playlists can be selected with the arrows or from a dropdown menu in iTunes 12)
     # Theses Media Kinds cannot be selected by the user. I am unsure about their meaning.
     0xC00008 : "Book or Audiobook", # TODO My guess: This contains Books and Audiobooks
@@ -201,7 +201,7 @@ class Offset(IntEnum):
     """Byte offsets for the fields"""
     INTLENGTH = 67;           # The length on a int criteria starting at the first int
     SUBEXPRESSIONLENGTH = 192 # The length of a subexpression starting from FIELD
-    
+
     # INFO OFFSETS
     # Offsets for bytes which...
     LIVEUPDATE = 0           # determine whether live updating is enabled - Absolute offset
@@ -212,7 +212,7 @@ class Offset(IntEnum):
     LIMITINT = 8             # determine the limited - Absolute offset
     LIMITCHECKED = 12        # determine whether to exclude unchecked items - Absolute offset
     SELECTIONMETHODSIGN = 13 # determine whether certain selection methods are "most" or "least" - Absolute offset
-    
+
     # CRITERIA OFFSETS
     # Offsets for bytes which...
     LOGICTYPE = 15    # determine whether all or any criteria must match - Absolute offset

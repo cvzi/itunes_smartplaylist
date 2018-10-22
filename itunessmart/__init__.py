@@ -1,10 +1,10 @@
 """
-iTunes Smart playlist parser with Python. Decode itunes smart playlist rules from base64 data. Convert iTunes smart playlists to Kodi xsp smart playlists. 
+iTunes Smart playlist parser with Python. Decode itunes smart playlist rules from base64 data. Convert iTunes smart playlists to Kodi xsp smart playlists.
 """
 
 __version__ = '1.1.0'
 __author__ = 'cuzi'
-__email__ = 'cuzi@openmail.cc' 
+__email__ = 'cuzi@openmail.cc'
 __source__ = 'https://github.com/cvzi/itunes_smartplaylist'
 __license__ = """
 MIT License
@@ -46,7 +46,7 @@ class Parser:
         self._parser = SmartPlaylistParser(datastr_info, datastr_criteria)
         if datastr_info and datastr_criteria:
             self._update()
-    
+
     def _update(self):
         self.result = None
         self._parser.parse()
@@ -56,7 +56,7 @@ class Parser:
         self._parser.str_data(datastr_info, datastr_criteria)
         self._update()
         return self.result
-        
+
     def update_data_bytes(self, data_info: bytes, data_criteria: bytes) -> SmartPlaylist:
         self._parser.data(data_info, data_criteria)
         self._update()
@@ -69,7 +69,7 @@ class BytesParser(Parser):
         self._parser = SmartPlaylistParser()
         self._parser.data(data_info, data_criteria)
         self._parser.parse()
-        
+
         self._update()
 
 

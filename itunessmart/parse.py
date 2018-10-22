@@ -13,16 +13,16 @@ from itunessmart.data_structure import *
 
 class SmartPlaylist:
     """ Parser result. Contains all decoded playlist data"""
-    
+
     def __init__(self, parser):
         self.output = parser.output
         self.query = parser.query
         self.queryTree = parser.queryTree
         self.ignore = parser.ignore
-        
+
     def __str__(self):
         return "SmartPlaylist(`%s`)" % self.query
-        
+
     def __repr__(self):
         return "SmartPlaylist(%s)" % json.dumps({"queryTree": self.queryTree, "ignore":self.ignore}, indent=2)
 
@@ -52,14 +52,14 @@ class SmartPlaylistParser:
         self.output = ""
         self.ignore = ""
         self.limit = {}
-        
+
         self.subStack = []
-    
+
     def result(self):
         if self.is_parsed:
             return SmartPlaylist(self)
         raise RuntimeError("Data not parsed yet. Call parse() before result()")
-        
+
     def parse(self):
         if self.is_parsed:
             return
@@ -335,7 +335,7 @@ class SmartPlaylistParser:
 
         if len(self.ignore) > 0:
             self.ignore += self.conjunctionOutput
-        
+
         if failed:
             self.ignore += self.workingOutput
         else:
@@ -418,7 +418,7 @@ class SmartPlaylistParser:
                     errormessage = "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA, numberB)
                     logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
-                        
+
                     self.workingOutput += " ##UnkownCase IntField: LogicRule.Other##"
                     self.workingQuery += " ##UnkownCase IntField: LogicRule.Other##"
 
@@ -481,14 +481,14 @@ class SmartPlaylistParser:
                 errormessage = "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA, numberB)
                 logging.warning(errormessage)
                 self.ignore += " Not processed: %s " % errormessage
-                    
+
                 self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
                 self.workingQuery += " ##UnkownCase MediaKindField: LogicRule.Other##"
         else: # pragma: no cover
             errormessage = "Unkown logic rule in ProcessMediaKindField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
-            
+
             self.workingOutput += " ##UnkownCase MediaKindField:LogicRule##"
             self.workingQuery += " ##UnkownCase MediaKindField:LogicRule##"
 
@@ -645,7 +645,7 @@ class SmartPlaylistParser:
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
             self.again = True
-            
+
     def ProcessLoveField(self):
         self.fieldName = LoveFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName

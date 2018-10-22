@@ -34,7 +34,7 @@ if __name__ == "__main__":
     print("Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
 
-        # Read XML file 
+        # Read XML file
         library = itunessmart.readiTunesLibrary(fs)
 
     """
@@ -56,7 +56,7 @@ if __name__ == "__main__":
             except:
                 pass
     """
-        
+
     # Decode and export all smart playlists
 
     parser = itunessmart.Parser()
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
-    
+
     print("Exporting playlists to %s" % outputDirectory)
 
     res = {}
@@ -85,7 +85,7 @@ if __name__ == "__main__":
                     #fs.write("\r\n")
                     #fs.write(base64.standard_b64encode(playlist['Smart Info']).decode("utf-8"))
                     #fs.write("\r\n")
-                    #fs.write(base64.standard_b64encode(playlist['Smart Criteria']).decode("utf-8"))                  
+                    #fs.write(base64.standard_b64encode(playlist['Smart Criteria']).decode("utf-8"))
             except itunessmart.EmptyPlaylistException as e:
                 print("`%s` is empty." % playlist['Name'])
             except itunessmart.PlaylistException as e:
@@ -98,6 +98,6 @@ if __name__ == "__main__":
                 except:
                     print(playlist)
 
-    
 
-        
+
+
