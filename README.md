@@ -29,16 +29,12 @@ However, nested rules can be simulated with sub-playlists. These "helper"-playli
 When you run `utils/export_xsp.py`, you can disable generation of subplaylists.  
 
 More information on Kodie smart playlists:  
-http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file
-
-
-
+[http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file](http://kodi.wiki/view/smart_playlists#Format_of_a_smart_playlist_file)
 
 Text export
 -----------
 
 To export all playlists to text files, use `python3 utils/export.py`  
-
 
 The format
 ----------
@@ -109,7 +105,7 @@ print(json.dumps(result.queryTree, indent=2))
 
 A text format:
 
-```
+```python
 Plays is greater than 15 and
 [
 	Plays is greater than 16 or
@@ -203,4 +199,3 @@ And two tree structures
   }
 }
 ```
-
