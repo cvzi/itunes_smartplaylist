@@ -56,8 +56,9 @@ class SmartPlaylistParser:
         self.subStack = []
     
     def result(self):
-        assert self.is_parsed
-        return SmartPlaylist(self)
+        if self.is_parsed:
+            return SmartPlaylist(self)
+        raise RuntimeError("Data not parsed yet. Call parse() before result()")
         
     def parse(self):
         if self.is_parsed:
