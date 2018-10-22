@@ -97,7 +97,7 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                 elif elem.tag == 'date':
                     try:
                         elem.text = int(time.mktime(datetime.datetime.strptime(elem.text, "%Y-%m-%dT%H:%M:%SZ").timetuple()))
-                    except:
+                    except ValueError:
                         elem.text = 0
                 elif elem.tag == 'data':
                     elem.text = base64.standard_b64decode("".join(elem.text.split()))

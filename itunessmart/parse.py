@@ -307,7 +307,7 @@ class SmartPlaylistParser:
         self.workingOutput += '" '
         failed = False
         if self.criteria[self.offset] == StringFields.Kind:
-            workingQuery = ""
+            self.workingQuery = ""
             for kind in FileKinds:
                 if KindEval(kind, self.content):
                     if len(self.workingQuery) > 0:
@@ -828,7 +828,8 @@ class SmartPlaylistParser:
         if len(self.criteria) > self.offset:
             self.again = True
 
-    def _iTunesUint(self, bytearr, divideby=False, denominator=20):
+    @staticmethod
+    def _iTunesUint(bytearr, divideby=False, denominator=20):
         num = struct.unpack('>I', bytearr)[0]
         if divideby:  # For rating/stars by 20
             num = int(num / denominator)

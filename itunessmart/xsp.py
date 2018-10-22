@@ -34,10 +34,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
     """
 
     if friendlyFilename is None:
-        def friendlyFilename(name):
-            filename = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")
-            filename = re.sub('[^\w\s-]', '', filename).strip()
-            return filename
+        friendlyFilename = lambda name: re.sub('[^\w\s-]', '', unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")).strip()
 
     r = []
     for playlistname, content in createXSP(name=name, smartPlaylist=smartPlaylist, createSubplaylists=createSubplaylists, persistentIDMapping=persistentIDMapping):
@@ -176,33 +173,33 @@ def _minimize(obj):
         else:
             result = []
             for x in obj:
-                y = _minimize(obj)
+                y = _minimize(x)
                 if y:
                     result.append(y)
             return result
     else:
         return obj
 
-"""
-def flat(obj, depth=0):
-    # Remove everything except first level
-    if depth > 1:
-        return
 
-    if type(obj) is tuple:
-        return (obj[0], flat(obj[1], depth+1))
+# def flat(obj, depth=0):
+#     # Remove everything except first level
+#     if depth > 1:
+#         return
+# 
+#     if type(obj) is tuple:
+#         return (obj[0], flat(obj[1], depth+1))
+# 
+#     if type(obj) is list:
+#         result = []
+#         for x in obj:
+#             y = flat(x, depth)
+#             if y:
+#                 result.append(y)
+#         return result
+# 
+#     if type(obj) is dict:
+#         return obj
 
-    if type(obj) is list:
-        result = []
-        for x in obj:
-            y = flat(x, depth)
-            if y:
-                result.append(y)
-        return result
-
-    if type(obj) is dict:
-        return obj
-"""
 
 def _escapeHTML(x):
     t = type(x)

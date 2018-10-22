@@ -37,25 +37,25 @@ if __name__ == "__main__":
         # Read XML file
         library = itunessmart.readiTunesLibrary(fs)
 
-    """
-    # Create tree from XML data
-    treeRoot,playlistsByPersistentId = itunessmart.createPlaylistTree(library)
-
-    # Print the paylist tree
-    try:
-        from asciitree.asciitree_py3 import draw_tree
-        printUni(draw_tree(treeRoot))
-    except:
-        pass
-
-    # Print all smart playlists
-    for playlist in library['Playlists']:
-        if 'Smart Criteria' in playlist and playlist['Smart Criteria']:
-            try:
-                print(playlist['Name'])
-            except:
-                pass
-    """
+    
+#    # Create tree from XML data
+#    treeRoot,playlistsByPersistentId = itunessmart.createPlaylistTree(library)
+#
+#    # Print the paylist tree
+#    try:
+#        from asciitree.asciitree_py3 import draw_tree
+#        printUni(draw_tree(treeRoot))
+#    except:
+#        pass
+#
+#    # Print all smart playlists
+#    for playlist in library['Playlists']:
+#        if 'Smart Criteria' in playlist and playlist['Smart Criteria']:
+#            try:
+#                print(playlist['Name'])
+#            except:
+#                pass
+    
 
     # Decode and export all smart playlists
 
