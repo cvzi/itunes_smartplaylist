@@ -14,7 +14,7 @@ except ImportError:
 
 class Library(dict):
     pass
-    
+
 
 
 def generatePersistentIDMapping(library: Library) -> Dict[str, str]:
@@ -40,7 +40,7 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
 
     assert plist.tag == "plist"
     assert plist.attrib['version'] == "1.0"
-    
+
     current = Library()
     current_islist = False # current can be dict or list
     key = "plist"
@@ -99,12 +99,12 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                 elif elem.tag == 'data':
                     elem.text = base64.standard_b64decode("".join(elem.text.split()))
 
-                
+
                 if current_islist:
                     current.append(elem.text)
                 else:
                     current[key] = elem.text
-                    
+
             elem.clear()
     plist.clear()
 
@@ -122,14 +122,14 @@ class Node:
         return "%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name")
     def __repr__(self):
         return "%s #%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name",str(self.data['Playlist Persistent ID']) if 'Playlist Persistent ID' in self.data else "")
-    
+
 def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
     """ Create playlist tree
     :param Library library: the result of readiTunesLibrary()
     :return: Return the tree and a mapping from PersistentId to playlist: (rootNode, playlistByPersistentId_dict)
     :rtype: tuple
     """
-    
+
     nodesByPersistentId = {}
     playlistByPersistentId = {} # Map PlaylistPersistentId to Playlist data
     otherPlaylists = [] # Playlists without PersistendId
@@ -140,7 +140,7 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
         if 'Playlist Items' in playlist:
             playlist['Playlist Items'] = [[dictionary[x] for x in dictionary][0] for dictionary in playlist['Playlist Items']]
 
-        
+
         if 'Playlist Persistent ID' not in playlist:
             otherPlaylists.append(playlist)
             continue
@@ -157,14 +157,14 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
         else:
             parentNode = Node(playlistByPersistentId[playlist["Parent Persistent ID"]])
             nodesByPersistentId[ parentNode.data['Playlist Persistent ID'] ] = parentNode
-            
+
         node.parent = parentNode
         parentNode.children.append(node)
 
-    parentNodes = [ (nodesByPersistentId[PerId] if PerId in nodesByPersistentId else Node(playlistByPersistentId[PerId])) for PerId in playlistByPersistentId if not playlistByPersistentId[PerId] in childPlaylists]    
+    parentNodes = [ (nodesByPersistentId[PerId] if PerId in nodesByPersistentId else Node(playlistByPersistentId[PerId])) for PerId in playlistByPersistentId if not playlistByPersistentId[PerId] in childPlaylists]
 
     root = Node("root")
     root.children = parentNodes + [Node(playlist) for playlist in otherPlaylists]
     root.children.sort(key = lambda node: node.data['Name'] if "Name" in node.data else "")
-    
+
     return root, playlistByPersistentId

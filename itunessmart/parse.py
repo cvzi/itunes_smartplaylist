@@ -256,7 +256,7 @@ class SmartPlaylistParser:
                 self.workingQuery += " NOT LIKE '%"
                 self.workingFull["operator"] = "not like"
             if self.criteria[self.offset] == StringFields.Kind:
-                def KindEval(kind, query): return query in kind.name
+                KindEval = lambda kind, query: query in kind.name
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Is:
@@ -269,14 +269,14 @@ class SmartPlaylistParser:
                 self.workingQuery += " != '"
                 self.workingFull["operator"] = "is not"
             if self.criteria[self.offset] == StringFields.Kind:
-                def KindEval(kind, query): return query == kind.name
+                KindEval = lambda kind, query: query == kind.name
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Starts:
             self.workingOutput += " starts with "
             self.workingQuery += " Like '"
             self.workingFull["operator"] = "starts with"
             if self.criteria[self.offset] == StringFields.Kind:
-                def KindEval(kind, query): return query not in kind.name
+                KindEval = lambda kind, query: query not in kind.name
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Ends:
@@ -284,9 +284,7 @@ class SmartPlaylistParser:
             self.workingQuery += " Like '%"
             self.workingFull["operator"] = "ends with"
             if self.criteria[self.offset] == StringFields.Kind:
-                def KindEval(
-                    kind, query): return kind.name.index(query) == len(
-                    kind.name) - len(query)
+                KindEval = lambda kind, query: kind.name.index(query) == len(kind.name) - len(query)
             end = True
 
         self.workingOutput += '"'

@@ -18,7 +18,7 @@ xml_rule = '''    <rule field="{field}" operator="{operator}">
 xml_value = '''        <value>{value}</value>'''
 
 xsp_fields = {
-"Artist" :"artist", 
+"Artist" :"artist",
 "AlbumArtist" : "albumartist",
 "Album" : "album",
 "Genre" : "genre",

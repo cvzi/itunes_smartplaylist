@@ -7,13 +7,14 @@ import unicodedata
 import re
 import html
 import os.path
+import collections
 from typing import Callable, List, Tuple
 
 from itunessmart.xsp_structure import *
 from itunessmart.parse import SmartPlaylist
 
 __all__ = ["createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException"]
-    
+
 class PlaylistException(Exception):
     pass
 
@@ -31,7 +32,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
     :return: list filenames
     :rtype: list
     """
-    
+
     if friendlyFilename is None:
         def friendlyFilename(name):
             filename = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")
@@ -46,7 +47,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
             f.write(content.encode("utf-8"))
         logging.info(filename)
         r.append(filename)
-    
+
     return r
 
 def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, subPlaylistPrefix: str = "zzzsub_") -> List[Tuple[str, str]]:
@@ -59,23 +60,23 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
     :return: list of tuples: (playlist_name, xml_content)
     :rtype: list
     """
-    
+
     if persistentIDMapping is None:
         persistentIDMapping = {}
-        
+
     queryTree = smartPlaylist.queryTree
     fulltree = queryTree["fulltree"]
-    
+
     if not fulltree:
         raise EmptyPlaylistException("Playlist is empty", name)
-    
+
     if "and" in fulltree:
         globalmatch = "and"
     else:
         globalmatch = "or"
-    
+
     f = _minimize(_combineRules(fulltree, persistentIDMapping, createSubplaylists))
-    
+
     if f:
         y = _convertRule(f, depth=0, docs = [])
         if len(y) == 3:
@@ -86,11 +87,11 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
             globalmatch = "and"
             rules = y
             subplaylists = []
-            
+
     else:
         raise PlaylistException("Playlist is incompatible. All of the rules are incompatible with XSP format", name)
-        
-        
+
+
     limit = ('    <limit>%d</limit>' % queryTree['number']) if 'number' in queryTree else ''
     order = ""
     if 'order' in queryTree:
@@ -98,9 +99,9 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
             order = '    <order>random</order>'
         elif queryTree['order'] in xsp_sorting:
             order = '    <order direction="%s">%s</order>' % xsp_sorting[queryTree['order']]
-    
+
     meta = limit + '\n' + order
-    
+
     r = []
     if createSubplaylists and subplaylists:
         for sub_globalmatch, sub_rules in subplaylists:
@@ -108,13 +109,13 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
             subdocument = xml_doc.format(dec=xml_dec, name=_escapeHTML(sub_name), globalmatch=xsp_operators[sub_globalmatch], rules=sub_rules, meta="")
             rules += "\n" + xml_rule.format(field="playlist", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
             r.append((sub_name, subdocument))
-    
-    
+
+
     document = xml_doc.format(dec=xml_dec, name=_escapeHTML(name), globalmatch=xsp_operators[globalmatch], rules=rules, meta=meta)
-    
+
     r.append((name, document))
-    
-    
+
+
     return r
 
 def _combineRules(obj, persistentIDMapping, createSubplaylists):
@@ -129,17 +130,17 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
 
                     # combine with existing rule
                     combined = False
-                    if operator is "or" and type(y) == dict:
+                    if operator is "or" and isinstance(y, collections.Mapping):
                         for r in t[1]:
-                            if type(r) == dict and r["field"] == y["field"] and r["operator"] == y["operator"]:
-                                if type(r["value"]) != list:
+                            if isinstance(r, collections.Mapping) and r["field"] == y["field"] and r["operator"] == y["operator"]:
+                                if not isinstance(r["value"], list):
                                     r["value"] = [r["value"]]
                                 r["value"].append(y["value"])
                                 combined = True
                                 break
                     if not combined:
                         t[1].append(y)
-                    
+
             if len(t[1]) > 1:
                 result.append((operator, t[1]))
             elif len(t[1]) == 1 and t[1] is not None:
@@ -152,7 +153,7 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
             return None
         if not obj["operator"] in xsp_allowed_operators:
             return None
-            
+
         if obj["field"] == "PlaylistPersistentID":
             if obj["value"] in persistentIDMapping:
                 # Replace PersistentID with playlistname
@@ -160,16 +161,16 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
                 if not createSubplaylists:
                     try:
                         logging.warning("# Playlist dependency ignored: Depends on '%s'" % obj["value"])
-                    except:
-                        logging.warning("# Playlist dependency ignored.")
+                    except (UnicodeEncodeError, KeyError, TypeError) as e:
+                        logging.warning("# Playlist dependency ignored: %s" % str(e))
             else:
                 return None
-            
+
         return obj
-    
+
 def _minimize(obj):
     """Remove lists with only one entry"""
-    if type(obj) is list:
+    if isinstance(obj, list):
         if len(obj) == 1:
             return _minimize(obj[0])
         else:
@@ -198,9 +199,9 @@ def flat(obj, depth=0):
             if y:
                 result.append(y)
         return result
-    
+
     if type(obj) is dict:
-        return obj 
+        return obj
 """
 
 def _escapeHTML(x):
@@ -209,13 +210,13 @@ def _escapeHTML(x):
         return html.escape(x, quote=False)
     if t is int or t is float:
         return x
-    
+
     return [_escapeHTML(i) for i in x]
 
 def _convertRule(obj, depth, docs):
     """Create XML rules"""
-    
-    if type(obj) is tuple:
+
+    if isinstance(obj, tuple):
         if not obj[1]:
             return ""
         operator = obj[0]
@@ -229,26 +230,26 @@ def _convertRule(obj, depth, docs):
             return ""
         else:
             return operator, "\n".join(rules), docs
-        
-    elif type(obj) is dict:
+
+    elif isinstance(obj, dict):
         if "value_date" in obj:
             obj["value"] = obj["value_date"]
-        if type(obj["value"]) is not list:
+        if not isinstance(obj["value"], list):
             obj["value"] = [obj["value"]]
         values = []
         for value in obj["value"]:
             values.append(xml_value.format(value=_escapeHTML(value)))
-        values = "\n".join(values) 
+        values = "\n".join(values)
         return xml_rule.format(field=xsp_fields[obj["field"]], operator=xsp_operators[obj["operator"]], values=values)
-    
-    elif type(obj) is list:
+
+    elif isinstance(obj, list):
         rules = []
         for x in obj:
             y = _convertRule(obj=x, depth=depth, docs=docs)
             if y:
                 rules.append(y)
         return "\n".join(rules)
-    
+
     else:
         raise PlaylistException("Unknown obj type", repr(obj))
 
