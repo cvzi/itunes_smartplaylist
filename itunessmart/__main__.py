@@ -157,7 +157,7 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
                     print("! Failed to convert playlist:")
                     print(traceback.format_exc())
                     printWithoutException(p_name)
-                except:
+                except (UnicodeEncodeError, KeyError, TypeError) as e:
                     print(p_result)
 
 

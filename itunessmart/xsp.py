@@ -180,12 +180,11 @@ def _minimize(obj):
     else:
         return obj
 
-
 # def flat(obj, depth=0):
 #     # Remove everything except first level
 #     if depth > 1:
 #         return
-# 
+#
 #     if type(obj) is tuple:
 #         return (obj[0], flat(obj[1], depth+1))
 # 
@@ -196,10 +195,9 @@ def _minimize(obj):
 #             if y:
 #                 result.append(y)
 #         return result
-# 
+#
 #     if type(obj) is dict:
 #         return obj
-
 
 def _escapeHTML(x):
     t = type(x)
