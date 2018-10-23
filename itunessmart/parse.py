@@ -834,7 +834,7 @@ class SmartPlaylistParser:
         if divideby:  # For rating/stars by 20
             num = int(num / denominator)
         return num
-        
+
     @classmethod
     def _iTunesDate(cls, bytearr):
         timestamp = cls._iTunesUint(bytearr)
@@ -844,4 +844,3 @@ class SmartPlaylistParser:
     def _dateString(timestamp):
         return datetime.datetime.utcfromtimestamp(
             int(timestamp)).strftime('%Y-%m-%dT%H:%M:%SZ')
-

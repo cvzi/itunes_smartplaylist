@@ -187,7 +187,7 @@ def _minimize(obj):
 #
 #     if type(obj) is tuple:
 #         return (obj[0], flat(obj[1], depth+1))
-# 
+#
 #     if type(obj) is list:
 #         result = []
 #         for x in obj:
