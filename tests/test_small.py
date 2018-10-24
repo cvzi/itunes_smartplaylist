@@ -11,8 +11,6 @@ except ImportError:
     import itunessmart
     print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
 
-
-
 testdata = [
     {
         "desc" : "5 stars  AND  Media Kind is Music, Limited to 50000",
@@ -250,7 +248,7 @@ def test_examples(verbose=False):
         else:
             raise NotImplementedError(test["desc"])
 
-def test_double_parse(verbose):
+def test_double_parse(verbose=False):
     parser = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
     query = parser.result.query
     parser._parser.parse()
@@ -259,7 +257,7 @@ def test_double_parse(verbose):
     assert query == parser.result.query
     
     
-def test_reuse_parser(verbose):
+def test_reuse_parser(verbose=False):
     parser0 = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
     parser1 = itunessmart.Parser(testdata[1]["info"], testdata[1]["criteria"])
     
@@ -277,7 +275,7 @@ def test_reuse_parser(verbose):
     assert parser0.result.queryTree == parser1.result.queryTree
     
 
-def run_all(verbose):
+def run_all(verbose=False):
     for fname, f in list(globals().items()):
         if fname.startswith('test_'):
             print("%s()" % fname)

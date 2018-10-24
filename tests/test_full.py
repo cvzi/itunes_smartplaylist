@@ -484,7 +484,7 @@ testdata = [
 ]
 
 
-def test_examples(verbose):
+def test_examples(verbose=False):
     for test in copy.deepcopy(testdata):
         parser = itunessmart.Parser(test["info"], test["criteria"])
         result = parser.result
@@ -532,7 +532,7 @@ def readLibrary(filename):
     return library
     
 
-def test_library_minimal(verbose):
+def test_library_minimal(verbose=False):
     library = readLibrary("library_minimal.xml")
     
     playlist = library['Playlists'][1]
@@ -549,7 +549,7 @@ def test_library_minimal(verbose):
     assert mapping['38822E892B8D332A'] == "Chip - League of My Own II"
     
     
-def test_bytes_parser(verbose):
+def test_bytes_parser(verbose=False):
     library = readLibrary("library_minimal.xml")
     
     playlist = library['Playlists'][1]
@@ -564,7 +564,7 @@ def test_bytes_parser(verbose):
 
     
 
-def test_library_onlysmartplaylists(verbose):
+def test_library_onlysmartplaylists(verbose=False):
     library = readLibrary("library_onlysmartplaylists.xml")
     
     playlist = library['Playlists'][15]
@@ -588,7 +588,7 @@ def test_library_onlysmartplaylists(verbose):
             assert parser.result.query == "(lower(Artist) LIKE '%adele%') OR (lower(Artist) LIKE '%austin howard brown%') OR (lower(Artist) LIKE '%churchill%') OR (lower(Artist) LIKE '%duenday%') OR (lower(Artist) LIKE '%gnarls barkley%') OR ( (lower(Artist) LIKE '%jack white%') AND (lower(Name) LIKE '%blue light%') ) OR (lower(Artist) LIKE '%more than lights%') OR (lower(Artist) LIKE '%santogold%') OR (lower(Artist) LIKE '%sutcliffe%') OR (lower(Artist) LIKE '%zz ward%')"
     
     
-def test_xsp_minimal(verbose):
+def test_xsp_minimal(verbose=False):
     library = readLibrary("library_minimal.xml")
     
     playlist = library['Playlists'][1]
@@ -623,7 +623,7 @@ def test_xsp_minimal(verbose):
             os.remove(file)
     
     
-def test_xsp_errors(verbose):
+def test_xsp_errors(verbose=False):
     parser = itunessmart.Parser(testdata[13]["info"], testdata[13]["criteria"])
     
     assert parser.result.query == "(MediaKind != 'Home Video')"
@@ -634,7 +634,7 @@ def test_xsp_errors(verbose):
         assert type(e) == itunessmart.xsp.PlaylistException
     
 
-def test_xsp_subplaylists(verbose):
+def test_xsp_subplaylists(verbose=False):
     library = readLibrary("library_onlysmartplaylists.xml")
     persistentIDMapping = itunessmart.generatePersistentIDMapping(library)
     parser = itunessmart.Parser()
@@ -679,7 +679,7 @@ def test_xsp_subplaylists(verbose):
         if os.path.isfile(file):
             os.remove(file)
 
-def run_all(verbose):
+def run_all(verbose=False):
     for fname, f in list(globals().items()):
         if fname.startswith('test_'):
             print("%s()" % fname)
