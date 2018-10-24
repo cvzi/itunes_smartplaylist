@@ -352,28 +352,28 @@ testdata = [
                     "(PlaylistPersistentID = 'F3C70D8A4F54058F')"
                     ),
                     (
-                    "(iCloudStatus != 'Matched')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus != 'Matched')"
                     ),
                     (
-                    "(iCloudStatus = 'Purchased')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus = 'Purchased')"
                     ),
                     (
-                    "(iCloudStatus = 'Uploaded')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus = 'Uploaded')"
                     ),
                     (
-                    "(iCloudStatus = 'Ineligible')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus = 'Ineligible')"
                     ),
                     (
-                    "(iCloudStatus = 'Local Only')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus = 'Local Only')"
                     ),
                     (
-                    "(iCloudStatus = 'Duplicate')",
-                    "iCloudStatus"
+                    "iCloudStatus",
+                    "(iCloudStatus = 'Duplicate')"
                     )
                 ]
             },

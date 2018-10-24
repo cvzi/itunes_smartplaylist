@@ -120,15 +120,15 @@ class SmartPlaylistParser:
                 elif any(self.criteria[self.offset] == e.value for e in BooleanFields):
                     self.ProcessBooleanField()
                 elif any(self.criteria[self.offset] == e.value for e in MediaKindFields):
-                    self.ProcessMediaKindField()
+                    self.ProcessListField(MediaKindFields, MediaKinds, type="mediakind")
                 elif any(self.criteria[self.offset] == e.value for e in PlaylistFields):
                     self.ProcessPlaylistField()
                 elif any(self.criteria[self.offset] == e.value for e in CloudFields):
-                    self.ProcessCloudField()
+                    self.ProcessListField(CloudFields, iCloudStatus, type="cloud")
                 elif any(self.criteria[self.offset] == e.value for e in LoveFields):
-                    self.ProcessLoveField()
+                    self.ProcessListField(LoveFields, LoveStatus, type="love")
                 elif any(self.criteria[self.offset] == e.value for e in LocationFields):
-                    self.ProcessLocationField()
+                    self.ProcessListField(LocationFields, LocationKinds, type="location")
                 elif self.criteria[self.offset] == 0:
                     # Subexpression
 
@@ -437,76 +437,6 @@ class SmartPlaylistParser:
         if len(self.criteria) > self.offset:
             self.again = True
 
-    def ProcessMediaKindField(self):
-        self.fieldName = MediaKindFields(self.criteria[self.offset]).name
-        self.workingOutput = self.fieldName
-        self.workingQuery = "(" + self.fieldName
-        self.workingFull = {"field": self.fieldName, "type": "mediakind"}
-
-        if self.criteria[self.logicRulesOffset] == LogicRule.Is:
-            number = self._iTunesUint(
-                self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
-            if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s" % MediaKinds[number]
-                self.workingQuery += " = '%s'" % MediaKinds[number]
-                self.workingFull["operator"] = "is"
-                self.workingFull["value"] = MediaKinds[number]
-
-            else:
-                self.workingOutput += " is not %s" % MediaKinds[number]
-                self.workingQuery += " != '%s'" % MediaKinds[number]
-                self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = MediaKinds[number]
-
-        elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
-            numberA = self._iTunesUint(
-                self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
-            numberB = self._iTunesUint(
-                self.criteria[self.intBOffset:self.intBOffset + 4], self.criteria[self.offset] == IntFields.Rating)
-            if numberA == numberB:
-                if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                    self.workingOutput += " is %s" % MediaKinds[numberA]
-                    self.workingQuery += " = '%s'" % MediaKinds[numberA]
-                    self.workingFull["operator"] = "is"
-                    self.workingFull["value"] = MediaKinds[numberA]
-                else:
-                    self.workingOutput += " is not %s" % MediaKinds[numberA]
-                    self.workingQuery += " != '%s'" % MediaKinds[numberA]
-                    self.workingFull["operator"] = "is not"
-                    self.workingFull["value"] = MediaKinds[numberA]
-
-            else: # pragma: no cover
-                errormessage = "Unkown case in ProcessMediaKindField:LogicRule.Other: %d != %d" % (numberA, numberB)
-                logging.warning(errormessage)
-                self.ignore += " Not processed: %s " % errormessage
-
-                self.workingOutput += " ##UnkownCase MediaKindField: LogicRule.Other##"
-                self.workingQuery += " ##UnkownCase MediaKindField: LogicRule.Other##"
-        else: # pragma: no cover
-            errormessage = "Unkown logic rule in ProcessMediaKindField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            logging.warning(errormessage)
-            self.ignore += " Not processed: %s " % errormessage
-
-            self.workingOutput += " ##UnkownCase MediaKindField:LogicRule##"
-            self.workingQuery += " ##UnkownCase MediaKindField:LogicRule##"
-
-        self.workingQuery += ")"
-
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
-        self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
-        self.fullTreeCurrent.append(self.workingFull)
-
-        self.offset = self.intAOffset + Offset.INTLENGTH
-        if len(self.criteria) > self.offset:
-            self.again = True
-
     def ProcessPlaylistField(self):
         self.fieldName = PlaylistFields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
@@ -598,125 +528,60 @@ class SmartPlaylistParser:
         self.offset = self.intAOffset + Offset.INTLENGTH
         if len(self.criteria) > self.offset:
             self.again = True
-
-    def ProcessCloudField(self):
-        self.fieldName = CloudFields(self.criteria[self.offset]).name
+    
+            
+    def ProcessListField(self, fields, valueDict, type = "list"):
+        self.fieldName = fields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-        self.workingFull = {"field": self.fieldName, "type": "cloud"}
+        self.workingFull = {"field": self.fieldName, "type": type}
 
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(
-                self.criteria[self.intAOffset:self.intAOffset + 4])
-
+                self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s" % (iCloudStatus[number])
-                self.workingQuery += " = '%s'" % (iCloudStatus[number])
+                self.workingOutput += " is %s" % valueDict[number]
+                self.workingQuery += " = '%s'" % valueDict[number]
                 self.workingFull["operator"] = "is"
-                self.workingFull["value"] = iCloudStatus[number]
-            else:
-                self.workingOutput += " is not %s" % (iCloudStatus[number])
-                self.workingQuery += " != '%s'" % (iCloudStatus[number])
-                self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = iCloudStatus[number]
+                self.workingFull["value"] = valueDict[number]
 
+            else:
+                self.workingOutput += " is not %s" % valueDict[number]
+                self.workingQuery += " != '%s'" % valueDict[number]
+                self.workingFull["operator"] = "is not"
+                self.workingFull["value"] = valueDict[number]
+
+        elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
+            numberA = self._iTunesUint(
+                self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
+            numberB = self._iTunesUint(
+                self.criteria[self.intBOffset:self.intBOffset + 4], self.criteria[self.offset] == IntFields.Rating)
+            if numberA == numberB:
+                if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
+                    self.workingOutput += " is %s" % valueDict[numberA]
+                    self.workingQuery += " = '%s'" % valueDict[numberA]
+                    self.workingFull["operator"] = "is"
+                    self.workingFull["value"] = valueDict[numberA]
+                else:
+                    self.workingOutput += " is not %s" % valueDict[numberA]
+                    self.workingQuery += " != '%s'" % valueDict[numberA]
+                    self.workingFull["operator"] = "is not"
+                    self.workingFull["value"] = valueDict[numberA]
+
+            else: # pragma: no cover
+                errormessage = "Unkown case in ProcessListField %s:LogicRule.Other: %d != %d" % (self.fieldName, numberA, numberB)
+                logging.warning(errormessage)
+                self.ignore += " Not processed: %s " % errormessage
+
+                self.workingOutput += " ##UnkownCase ListField %s: LogicRule.Other##" % self.fieldName
+                self.workingQuery += " ##UnkownCase ListField %s: LogicRule.Other##" % self.fieldName
         else: # pragma: no cover
-            errormessage = "Unkown logic rule in ProcessCloudField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
+            errormessage = "Unkown logic rule in ProcessListField %s: LogicRule=%d" % (self.fieldName, self.criteria[self.logicRulesOffset])
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
-            self.workingOutput += " ##UnkownCase CloudField:LogicRule##"
-            self.workingQuery += " ##UnkownCase CloudField:LogicRule##"
 
-        self.workingQuery += ")"
-
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
-        self.queryTreeCurrent.append((self.workingQuery, self.fieldName))
-        self.fullTreeCurrent.append(self.workingFull)
-
-        self.offset = self.intAOffset + Offset.INTLENGTH
-        if len(self.criteria) > self.offset:
-            self.again = True
-
-    def ProcessLoveField(self):
-        self.fieldName = LoveFields(self.criteria[self.offset]).name
-        self.workingOutput = self.fieldName
-        self.workingQuery = "(" + self.fieldName
-        self.workingFull = {"field": self.fieldName, "type": "love"}
-
-        if self.criteria[self.logicRulesOffset] == LogicRule.Is:
-            number = self._iTunesUint(
-                self.criteria[self.intAOffset:self.intAOffset + 4])
-
-            if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s" % (LoveStatus[number])
-                self.workingQuery += " = '%s'" % (LoveStatus[number])
-                self.workingFull["operator"] = "is"
-                self.workingFull["value"] = LoveStatus[number]
-            else:
-                self.workingOutput += " is not %s" % (LoveStatus[number])
-                self.workingQuery += " != '%s'" % (LoveStatus[number])
-                self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = LoveStatus[number]
-
-        else: # pragma: no cover
-            errormessage = "Unkown logic rule in ProcessLoveField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            logging.warning(errormessage)
-            self.ignore += "Not processed: %s " % errormessage
-            self.workingOutput += " ##UnkownCase LoveField:LogicRule##"
-            self.workingQuery += " ##UnkownCase LoveField:LogicRule##"
-
-        self.workingQuery += ")"
-
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
-        self.queryTreeCurrent.append((self.workingQuery, self.fieldName))
-        self.fullTreeCurrent.append(self.workingFull)
-
-        self.offset = self.intAOffset + Offset.INTLENGTH
-        if len(self.criteria) > self.offset:
-            self.again = True
-
-    def ProcessLocationField(self):
-        self.fieldName = LocationFields(self.criteria[self.offset]).name
-        self.workingOutput = self.fieldName
-        self.workingQuery = "(" + self.fieldName
-        self.workingFull = {"field": self.fieldName, "type": "location"}
-
-        if self.criteria[self.logicRulesOffset] in (
-                LogicRule.Is, LogicRule.Other):
-            number = self._iTunesUint(
-                self.criteria[self.intAOffset:self.intAOffset + 4])
-
-            if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s" % (LocationKinds[number])
-                self.workingQuery += " = '%s'" % (LocationKinds[number])
-                self.workingFull["operator"] = "is"
-                self.workingFull["value"] = LocationKinds[number]
-            else:
-                self.workingOutput += " is not %s" % (LocationKinds[number])
-                self.workingQuery += " != '%s'" % (LocationKinds[number])
-                self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = LocationKinds[number]
-
-        else: # pragma: no cover
-            errormessage = "Unkown logic rule in ProcessLocationField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
-            logging.warning(errormessage)
-            self.ignore += " Not processed: %s " % errormessage
-            self.workingOutput += " ##UnkownCase LocationField:LogicRule##"
-            self.workingQuery += " ##UnkownCase LocationField:LogicRule##"
+            self.workingOutput += " ##UnkownCase ListField %s:LogicRule##" % self.fieldName
+            self.workingQuery += " ##UnkownCase ListField %s:LogicRule##" % self.fieldName
 
         self.workingQuery += ")"
 
