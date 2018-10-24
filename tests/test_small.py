@@ -250,7 +250,7 @@ def test_examples(verbose=False):
         else:
             raise NotImplementedError(test["desc"])
 
-def test_double_parse():
+def test_double_parse(verbose):
     parser = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
     query = parser.result.query
     parser._parser.parse()
@@ -259,7 +259,7 @@ def test_double_parse():
     assert query == parser.result.query
     
     
-def test_reuse_parser():
+def test_reuse_parser(verbose):
     parser0 = itunessmart.Parser(testdata[0]["info"], testdata[0]["criteria"])
     parser1 = itunessmart.Parser(testdata[1]["info"], testdata[1]["criteria"])
     
@@ -277,11 +277,14 @@ def test_reuse_parser():
     assert parser0.result.queryTree == parser1.result.queryTree
     
 
+def run_all(verbose):
+    for fname, f in list(globals().items()):
+        if fname.startswith('test_'):
+            print("%s()" % fname)
+            f(verbose)
+            print("Ok.")
 
 
 
-if __name__ == '__main__':    
-    test_examples(verbose=True)
-    test_double_parse()
-    test_reuse_parser()
-
+if __name__ == '__main__':
+    run_all(verbose=False)
