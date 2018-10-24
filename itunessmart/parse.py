@@ -173,7 +173,7 @@ class SmartPlaylistParser:
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
                 else: # pragma: no cover
-                    errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
+                    errormessage = "Skipping Unkown field: %s" % (hex(self.criteria[self.offset]))
                     logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
                     logging.debug(self.criteria[self.offset:self.offset + 100])
