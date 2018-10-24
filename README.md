@@ -1,7 +1,7 @@
 iTunes Smartplaylist parser
 ===========================
 
-[![itunessmart on PyPI](https://img.shields.io/pypi/v/itunessmart.svg)](https://pypi.python.org/pypi/itunessmart)
+[![itunessmart on PyPI](https://img.shields.io/pypi/v/itunessmart.svg)](https://pypi.org/project/itunessmart/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/itunessmart.svg)](https://pypi.python.org/pypi/itunessmart)
 [![Coverage Status](https://coveralls.io/repos/github/cvzi/itunes_smartplaylist/badge.svg?branch=master)](https://coveralls.io/github/cvzi/itunes_smartplaylist?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/479adb4cc1eb4f6d8a5e9e193d676338)](https://www.codacy.com/app/cvzi/itunes_smartplaylist?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cvzi/itunes_smartplaylist&amp;utm_campaign=Badge_Grade)
