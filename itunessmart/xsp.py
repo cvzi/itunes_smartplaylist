@@ -144,8 +144,6 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
                 result.append((operator, t[1]))
             elif len(t[1]) == 1 and t[1] is not None:
                 result.append(t[1][0])
-            else:
-                pass
         return result
     else:
         if not obj["field"] in xsp_allowed_fields:
