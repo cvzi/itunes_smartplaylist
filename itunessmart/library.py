@@ -83,9 +83,9 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
             # else:
             #     pass
         elif event == "end":
-            # if elem.tag == 'key':
+            # elif elem.tag == 'key':
             #     pass
-            elif elem.tag == 'dict' or elem.tag == 'array':
+            if elem.tag == 'dict' or elem.tag == 'array':
                 current = parent.pop()
                 current_islist = isinstance(current, list)
             else:
