@@ -13,7 +13,6 @@ if __package__ == '':
     path = os.path.dirname(os.path.dirname(__file__))
     sys.path.insert(0, path)
 
-
 try:
     import itunessmart
 except ImportError:
@@ -72,7 +71,6 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
         library = itunessmart.readiTunesLibrary(fs)
         persistentIDMapping = itunessmart.generatePersistentIDMapping(library)
 
-
     print("# Library loaded!")
 
     userinput = input("# Do you want to convert a (single) or (all) playlists? ")
@@ -81,7 +79,7 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
         export_all = False
 
     userinput = input("# Do you want to export nested rules to sub-playlists? (yes/no) ")
-    if userinput.lower() in ("n","no", "0"):
+    if userinput.lower() in ("n", "no", "0"):
         export_sub_playlists = False
 
     # Decode and export all smart playlists
@@ -129,17 +127,15 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
                 except KeyError:
                     printWithoutException(playlist)
 
-
-
     if not export_all:
         i = 1
-        for p_name,_ in res:
+        for p_name, _ in res:
             printWithoutException("# %02d: %s" % (i, p_name))
             i += 1
 
         while True:
             i = input("# Please give the number of the playlist (0 to exit): ")
-            if i in ("0",""):
+            if i in ("0", ""):
                 break
 
             i = int(i)
@@ -159,11 +155,10 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
                 except (UnicodeEncodeError, KeyError, TypeError) as e:
                     print(p_result)
 
-
-
     print("# All done!")
     userdata = os.path.expandvars(r"%appdata%\kodi\userdata\playlists\music") if os.path.exists(os.path.expandvars(r"%appdata%\kodi\userdata")) else os.path.expanduser(r"~/Library/Application Support/Kodi/userdata/playlists/music")
     print("# You may copy the .xsp files to %s" % userdata)
+
 
 if __name__ == "__main__":
     main(*sys.argv[1:])

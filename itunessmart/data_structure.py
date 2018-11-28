@@ -201,9 +201,10 @@ class LogicRule(IntEnum):
     Greater = 0x10
     Less = 0x40
 
+
 class Offset(IntEnum):
     """Byte offsets for the fields"""
-    INTLENGTH = 67;            # The length on a int criteria starting at the first int
+    INTLENGTH = 67             # The length on a int criteria starting at the first int
     SUBEXPRESSIONLENGTH = 192  # The length of a subexpression starting from FIELD
 
     # INFO OFFSETS

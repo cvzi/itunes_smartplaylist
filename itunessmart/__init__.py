@@ -30,7 +30,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
 __all__ = ["Parser", "SmartPlaylist", "BytesParser", "createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException", "readiTunesLibrary", "generatePersistentIDMapping", "createPlaylistTree", "LibraryException"]
 
 from itunessmart.parse import SmartPlaylistParser, SmartPlaylist
@@ -62,6 +61,7 @@ class Parser:
         self._update()
         return self.result
 
+
 class BytesParser(Parser):
     """Parse data from raw bytes"""
     def __init__(self, data_info, data_criteria):
@@ -71,5 +71,3 @@ class BytesParser(Parser):
         self._parser.parse()
 
         self._update()
-
-

@@ -12,8 +12,10 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
+
 class Library(dict):
     pass
+
 
 class LibraryException(Exception):
     pass
@@ -104,7 +106,6 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                 elif elem.tag == 'data':
                     elem.text = base64.standard_b64decode("".join(elem.text.split()))
 
-
                 if current_islist:
                     current.append(elem.text)
                 else:
@@ -154,7 +155,7 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
             otherPlaylists.append(playlist)
             continue
         playlistByPersistentId[playlist['Playlist Persistent ID']] = playlist
-        if "Parent Persistent ID" in  playlist:
+        if "Parent Persistent ID" in playlist:
             childPlaylists.append(playlist)
 
     for playlist in childPlaylists:

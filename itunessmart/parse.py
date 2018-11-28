@@ -9,6 +9,7 @@ import struct
 import json
 from itunessmart.data_structure import *
 
+
 class SmartPlaylist:
     """ Parser result. Contains all decoded playlist data"""
 
@@ -23,6 +24,7 @@ class SmartPlaylist:
 
     def __repr__(self):
         return "SmartPlaylist(%s)" % json.dumps({"queryTree": self.queryTree, "ignore": self.ignore}, indent=2)
+
 
 class SmartPlaylistParser:
     def __init__(self, datastr_info=None, datastr_criteria=None):
@@ -62,7 +64,7 @@ class SmartPlaylistParser:
         if self.is_parsed:
             return
 
-        if not hasattr(self, 'info') or not hasattr(self, 'criteria') or not self.info or not self.criteria: # pragma: no cover
+        if not hasattr(self, 'info') or not hasattr(self, 'criteria') or not self.info or not self.criteria:  # pragma: no cover
             raise RuntimeError("Set smart info with data() or strdata() before running parse()")
 
         self.offset = int(Offset.FIELD)
@@ -172,7 +174,7 @@ class SmartPlaylistParser:
 
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
-                else: # pragma: no cover
+                else:  # pragma: no cover
                     errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
                     logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
@@ -410,7 +412,7 @@ class SmartPlaylistParser:
                         self.workingQuery += " != %d" % numberA
                         self.workingFull["operator"] = "is not"
                         self.workingFull["value"] = numberA
-                else: # pragma: no cover
+                else:  # pragma: no cover
                     errormessage = "Unkown case in ProcessIntField:LogicRule.Other: a=%d and b=%d" % (numberA, numberB)
                     logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
@@ -464,7 +466,7 @@ class SmartPlaylistParser:
                 self.workingFull["value"] = "%s%s" % (
                     hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
 
-        else: # pragma: no cover
+        else:  # pragma: no cover
             errormessage = "Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -503,7 +505,7 @@ class SmartPlaylistParser:
             self.workingFull["operator"] = "is"
             self.workingFull["value"] = value == 1
 
-        else: # pragma: no cover
+        else:  # pragma: no cover
             errormessage = "Unkown logic rule in ProcessBooleanField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage
@@ -596,7 +598,7 @@ class SmartPlaylistParser:
                 elif multiple == 2628000:
                     self.workingOutput += "%d months" % t
                     self.workingFull["value_date"] = "%d months" % t
-                else: # pragma: no cover
+                else:  # pragma: no cover
                     self.workingOutput += "%d*%d seconds" % (multiple, t)
                     self.workingFull["value_date"] = "%d*%d seconds" % (
                         multiple, t)
@@ -619,7 +621,7 @@ class SmartPlaylistParser:
         if len(self.criteria) > self.offset:
             self.again = True
 
-    def ProcessListField(self, fields, valueDict, type = "list"):
+    def ProcessListField(self, fields, valueDict, type="list"):
         self.fieldName = fields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
@@ -657,14 +659,14 @@ class SmartPlaylistParser:
                     self.workingFull["operator"] = "is not"
                     self.workingFull["value"] = valueDict[numberA]
 
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 errormessage = "Unkown case in ProcessListField %s:LogicRule.Other: %d != %d" % (self.fieldName, numberA, numberB)
                 logging.warning(errormessage)
                 self.ignore += " Not processed: %s " % errormessage
 
                 self.workingOutput += " ##UnkownCase ListField %s: LogicRule.Other##" % self.fieldName
                 self.workingQuery += " ##UnkownCase ListField %s: LogicRule.Other##" % self.fieldName
-        else: # pragma: no cover
+        else:  # pragma: no cover
             errormessage = "Unkown logic rule in ProcessListField %s: LogicRule=%d" % (self.fieldName, self.criteria[self.logicRulesOffset])
             logging.warning(errormessage)
             self.ignore += " Not processed: %s " % errormessage

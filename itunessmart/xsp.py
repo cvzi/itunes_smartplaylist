@@ -15,11 +15,14 @@ from itunessmart.parse import SmartPlaylist
 
 __all__ = ["createXSPFile", "createXSP", "PlaylistException", "EmptyPlaylistException"]
 
+
 class PlaylistException(Exception):
     pass
 
+
 class EmptyPlaylistException(PlaylistException):
     pass
+
 
 def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, friendlyFilename: Callable[[str], str] = None) -> List[str]:
     """ Create XSP playlist file(s) from the parser result queryTree, returns a list of filenames of the generates files
@@ -46,6 +49,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
         r.append(filename)
 
     return r
+
 
 def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool = True, persistentIDMapping: dict = None, subPlaylistPrefix: str = "zzzsub_") -> List[Tuple[str, str]]:
     """ Create XSP playlist(s) from the parser result queryTree, returns a list of tuples (playlist_name, xml_content)
@@ -88,7 +92,6 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
     else:
         raise PlaylistException("Playlist is incompatible. All of the rules are incompatible with XSP format", name)
 
-
     limit = ('    <limit>%d</limit>' % queryTree['number']) if 'number' in queryTree else ''
     order = ""
     if 'order' in queryTree:
@@ -107,13 +110,12 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
             rules += "\n" + xml_rule.format(field="playlist", operator="is", values=xml_value.format(value=_escapeHTML(sub_name)))
             r.append((sub_name, subdocument))
 
-
     document = xml_doc.format(dec=xml_dec, name=_escapeHTML(name), globalmatch=xsp_operators[globalmatch], rules=rules, meta=meta)
 
     r.append((name, document))
 
-
     return r
+
 
 def _combineRules(obj, persistentIDMapping, createSubplaylists):
     """Remove incompatible rules and combine similar rules"""
@@ -165,6 +167,7 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
 
         return obj
 
+
 def _minimize(obj):
     """Remove lists with only one entry"""
     if isinstance(obj, list):
@@ -199,6 +202,7 @@ def _minimize(obj):
 #     if type(obj) is dict:
 #         return obj
 
+
 def _escapeHTML(x):
     t = type(x)
     if t is str:
@@ -207,6 +211,7 @@ def _escapeHTML(x):
         return x
 
     return [_escapeHTML(i) for i in x]
+
 
 def _convertRule(obj, depth, docs):
     """Create XML rules"""
@@ -247,5 +252,3 @@ def _convertRule(obj, depth, docs):
 
     else:
         raise PlaylistException("Unknown obj type", repr(obj))
-
-

@@ -4,9 +4,9 @@
 
 import os
 import sys
-#import json
+# import json
 import traceback
-#import base64
+# import base64
 
 
 try:
@@ -26,7 +26,7 @@ def printUni(s):
 if __name__ == "__main__":
 
     home = os.path.expanduser("~")
-    folder = os.path.join(home, "Music/iTunes");
+    folder = os.path.join(home, "Music/iTunes")
     iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
 
     print("Reading %s . . . " % iTunesLibraryFile)
