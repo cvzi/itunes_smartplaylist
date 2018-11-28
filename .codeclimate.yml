@@ -1,5 +1,6 @@
 exclude_paths:
   - 'tests/**'
+  - 'example/**'
 engines:
   bandit:
     enabled: true
@@ -10,6 +11,9 @@ engines:
   pep8:
     enabled: true
     checks:
+      # Disable "Continuation line unaligned for hanging indent"
+      E131:
+        enabled: false
       # Disable "Line too long"
       E501:
         enabled: false 

@@ -18,6 +18,7 @@ class Library(dict):
 class LibraryException(Exception):
     pass
 
+
 def generatePersistentIDMapping(library: Library) -> Dict[str, str]:
     """Create a mapping from playlist id to playlist name. Necessary for converting rules concerning other playlists to xsp.
     :param dict library: the result of readiTunesLibrary()
@@ -30,13 +31,14 @@ def generatePersistentIDMapping(library: Library) -> Dict[str, str]:
             persistentIDMapping[playlist['Playlist Persistent ID']] = playlist["Name"]
     return persistentIDMapping
 
+
 def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
     """Read itunes library file `iTunes Music Library.xml` and return dict
     :param stream libraryFileStream: file `iTunes Music Library.xml`
     :return: iTunes library content
     :rtype: Library
     """
-    parser = ET.iterparse(libraryFileStream, events=('start','end'))
+    parser = ET.iterparse(libraryFileStream, events=('start', 'end'))
     _, plist = next(parser)
 
     if plist.tag != "plist":
@@ -45,7 +47,7 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
         raise LibraryException("<plist> version is not 1.0")
 
     current = Library()
-    current_islist = False # current can be dict or list
+    current_islist = False  # current can be dict or list
     key = "plist"
     data = current
     parent = [data]
@@ -114,17 +116,21 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
     data = data['plist']
     return data
 
+
 class Node:
-    def __init__(self,data):
+    def __init__(self, data):
         if isinstance(data, str):
-            data = {'Name':data}
+            data = {'Name': data}
         self.data = data
         self.children = []
         self.parent = None
+
     def __str__(self):
         return "%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name")
+
     def __repr__(self):
-        return "%s #%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name",str(self.data['Playlist Persistent ID']) if 'Playlist Persistent ID' in self.data else "")
+        return "%s #%s" % (str(self.data['Name']) if 'Name' in self.data else "Node:Unkown name", str(self.data['Playlist Persistent ID']) if 'Playlist Persistent ID' in self.data else "")
+
 
 def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
     """ Create playlist tree
@@ -134,9 +140,9 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
     """
 
     nodesByPersistentId = {}
-    playlistByPersistentId = {} # Map PlaylistPersistentId to Playlist data
-    otherPlaylists = [] # Playlists without PersistendId
-    childPlaylists = [] # This is a list of playlists, that have a Parent Persistent ID
+    playlistByPersistentId = {}  # Map PlaylistPersistentId to Playlist data
+    otherPlaylists = []  # Playlists without PersistendId
+    childPlaylists = []  # This is a list of playlists, that have a Parent Persistent ID
 
     for playlist in library['Playlists']:
         # Clean up tracks array
@@ -153,21 +159,21 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
 
     for playlist in childPlaylists:
         node = Node(playlist)
-        nodesByPersistentId[ playlist['Playlist Persistent ID'] ] = node
+        nodesByPersistentId[playlist['Playlist Persistent ID']] = node
 
         if playlist["Parent Persistent ID"] in nodesByPersistentId:
             parentNode = nodesByPersistentId[playlist["Parent Persistent ID"]]
         else:
             parentNode = Node(playlistByPersistentId[playlist["Parent Persistent ID"]])
-            nodesByPersistentId[ parentNode.data['Playlist Persistent ID'] ] = parentNode
+            nodesByPersistentId[parentNode.data['Playlist Persistent ID']] = parentNode
 
         node.parent = parentNode
         parentNode.children.append(node)
 
-    parentNodes = [ (nodesByPersistentId[PerId] if PerId in nodesByPersistentId else Node(playlistByPersistentId[PerId])) for PerId in playlistByPersistentId if not playlistByPersistentId[PerId] in childPlaylists]
+    parentNodes = [(nodesByPersistentId[PerId] if PerId in nodesByPersistentId else Node(playlistByPersistentId[PerId])) for PerId in playlistByPersistentId if not playlistByPersistentId[PerId] in childPlaylists]
 
     root = Node("root")
     root.children = parentNodes + [Node(playlist) for playlist in otherPlaylists]
-    root.children.sort(key = lambda node: node.data['Name'] if "Name" in node.data else "")
+    root.children.sort(key=lambda node: node.data['Name'] if "Name" in node.data else "")
 
     return root, playlistByPersistentId

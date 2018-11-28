@@ -22,7 +22,6 @@ except ImportError:
     import itunessmart
 
 
-
 def printWithoutException(s):
     try:
         print(s)
@@ -51,8 +50,8 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
 
     if not iTunesLibraryFile:
         home = os.path.expanduser("~")
-        folder = os.path.join(home,"Music/iTunes")
-        iTunesLibraryFile = os.path.join(folder,"iTunes Music Library.xml")
+        folder = os.path.join(home, "Music/iTunes")
+        iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
     elif not os.path.isfile(iTunesLibraryFile):
         if os.path.isfile(os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")):
             iTunesLibraryFile = os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")
@@ -102,7 +101,7 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
     for playlist in library['Playlists']:
         if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
-                parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
+                parser.update_data_bytes(playlist['Smart Info'], playlist['Smart Criteria'])
             except Exception as e:
                 print("! Failed to decode playlist:")
                 try:
@@ -136,7 +135,7 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
         i = 1
         for p_name,_ in res:
             printWithoutException("# %02d: %s" % (i, p_name))
-            i +=1
+            i += 1
 
         while True:
             i = input("# Please give the number of the playlist (0 to exit): ")

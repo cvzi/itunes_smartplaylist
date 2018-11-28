@@ -23,13 +23,11 @@ def printUni(s):
     sys.stdout.buffer.write(b"\n")
 
 
-
 if __name__ == "__main__":
 
-
     home = os.path.expanduser("~")
-    folder = os.path.join(home,"Music/iTunes");
-    iTunesLibraryFile = os.path.join(folder,"iTunes Music Library.xml")
+    folder = os.path.join(home, "Music/iTunes");
+    iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
 
     print("Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
@@ -38,7 +36,7 @@ if __name__ == "__main__":
         library = itunessmart.readiTunesLibrary(fs)
 
 #    # Create tree from XML data
-#    treeRoot,playlistsByPersistentId = itunessmart.createPlaylistTree(library)
+#    treeRoot, playlistsByPersistentId = itunessmart.createPlaylistTree(library)
 #
 #    # Print the paylist tree
 #    try:
@@ -70,20 +68,20 @@ if __name__ == "__main__":
     for playlist in library['Playlists']:
         if 'Name' in playlist and 'Smart Criteria' in playlist and 'Smart Info' in playlist and playlist['Smart Criteria']:
             try:
-                parser.update_data_bytes(playlist['Smart Info'],playlist['Smart Criteria'])
+                parser.update_data_bytes(playlist['Smart Info'], playlist['Smart Criteria'])
                 filename = ("".join(x for x in playlist['Name'] if x.isalnum())) + ".txt"
                 res[playlist['Name']] = parser.result.queryTree
                 with open(os.path.join(outputDirectory, filename), "w") as fs:
                     fs.write(playlist['Name'])
                     fs.write("\r\n\r\n")
                     fs.write(parser.result.output)
-                    #fs.write(parser.result.query)
-                    #fs.write(json.dumps(parser.result.queryTree, indent=2))
-                    #fs.write(parser.result.ignore)
-                    #fs.write("\r\n")
-                    #fs.write(base64.standard_b64encode(playlist['Smart Info']).decode("utf-8"))
-                    #fs.write("\r\n")
-                    #fs.write(base64.standard_b64encode(playlist['Smart Criteria']).decode("utf-8"))
+                    # fs.write(parser.result.query)
+                    # fs.write(json.dumps(parser.result.queryTree, indent=2))
+                    # fs.write(parser.result.ignore)
+                    # fs.write("\r\n")
+                    # fs.write(base64.standard_b64encode(playlist['Smart Info']).decode("utf-8"))
+                    # fs.write("\r\n")
+                    # fs.write(base64.standard_b64encode(playlist['Smart Criteria']).decode("utf-8"))
             except itunessmart.EmptyPlaylistException as e:
                 print("`%s` is empty." % playlist['Name'])
             except itunessmart.PlaylistException as e:
@@ -95,7 +93,3 @@ if __name__ == "__main__":
                     print(playlist['Name'])
                 except (UnicodeEncodeError, KeyError, TypeError) as e:
                     print(playlist)
-
-
-
-

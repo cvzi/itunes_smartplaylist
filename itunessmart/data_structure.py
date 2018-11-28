@@ -22,25 +22,25 @@ FileKinds = [
 ]
 
 MediaKinds = {
-        0x01 : "Music",
-        0x02 : "Movie",
-        0x04 : "Podcast",
-        0x08 : "Audiobook",
-        0x20 : "Music Video",
-        0x40 : "TV Show",
-       0x400 : "Home Video",
-     0x10000 : "iTunes Extras",
-    0x100000 : "Voice Memo",
-    0x200000 : "iTunes U",
-    0xC00000 : "Book",
+        0x01: "Music",
+        0x02: "Movie",
+        0x04: "Podcast",
+        0x08: "Audiobook",
+        0x20: "Music Video",
+        0x40: "TV Show",
+       0x400: "Home Video",
+     0x10000: "iTunes Extras",
+    0x100000: "Voice Memo",
+    0x200000: "iTunes U",
+    0xC00000: "Book",
     # TODO mediakinds of toplevel playlists
     # The following are only used in the toplevel playlists: Music, TV Shows, Movies and Books
     # (These playlists can be selected with the arrows or from a dropdown menu in iTunes 12)
     # Theses Media Kinds cannot be selected by the user. I am unsure about their meaning.
-    0xC00008 : "Book or Audiobook", # TODO My guess: This contains Books and Audiobooks
-    0x1021B1 : "Music", # TODO My guess: This is similar to Music
-    0x208004 : "Undesired Music", # TODO My guess: This is some kind of Music that should not appear in the toplevel playlist
-    0x20A004 : "Undesired Other" # TODO My guess: This is something (other than music) that should not appear in the toplevel playlist
+    0xC00008: "Book or Audiobook",  # TODO My guess: This contains Books and Audiobooks
+    0x1021B1: "Music",  # TODO My guess: This is similar to Music
+    0x208004: "Undesired Music",  # TODO My guess: This is some kind of Music that should not appear in the toplevel playlist
+    0x20A004: "Undesired Other"  # TODO My guess: This is something (other than music) that should not appear in the toplevel playlist
 }
 
 iCloudStatus = {
@@ -64,20 +64,21 @@ LocationKinds = {
 }
 
 SelectionMethodsStrings = {
-    "Random" :["random", "RANDOM()"],
-    "Name" : ["name", "SortName"],
-    "Album" : ["album", "SortAlbum"],
-    "Artist" : ["artist", "SortArtist"],
-    "Genre" : ["genre", "Genre"],
-    "HighestRating" : ["highest rated", "Rating DESC"],
-    "LowestRating" : ["lowest rated", "Rating ASC"],
-    "RecentlyPlayed" : [["most recently played", "least recently played"], ["LastPlayed DESC", "LastPlayed ASC"]],
-    "OftenPlayed" : [["most often played", "least often played"], ["Plays DESC", "Plays ASC"]],
-    "RecentlyAdded" : [["most recently added", "least recently added"], ["DateAdded DESC", "DateAdded ASC"]]
+    "Random": ["random", "RANDOM()"],
+    "Name": ["name", "SortName"],
+    "Album": ["album", "SortAlbum"],
+    "Artist": ["artist", "SortArtist"],
+    "Genre": ["genre", "Genre"],
+    "HighestRating": ["highest rated", "Rating DESC"],
+    "LowestRating": ["lowest rated", "Rating ASC"],
+    "RecentlyPlayed": [["most recently played", "least recently played"], ["LastPlayed DESC", "LastPlayed ASC"]],
+    "OftenPlayed": [["most often played", "least often played"], ["Plays DESC", "Plays ASC"]],
+    "RecentlyAdded": [["most recently added", "least recently added"], ["DateAdded DESC", "DateAdded ASC"]]
 }
 
 
-DateStartFromUnix = -2082844800 # iTunes/Unix time stamp 0 difference
+DateStartFromUnix = -2082844800  # iTunes/Unix time stamp 0 difference
+
 
 class LimitMethods(IntEnum):
     """The methods by which the number of songs in a playlist are limited"""
@@ -166,13 +167,16 @@ class PlaylistFields(IntEnum):
     """The matching criteria which take a Persistent Playlist ID (64bit)"""
     PlaylistPersistentID = 0x28
 
+
 class LoveFields(IntEnum):
     """The matching criteria which take a Persistent Playlist ID (64bit)"""
     Love = 0x9a
 
+
 class CloudFields(IntEnum):
     """The matching criteria which take iCloud status , as defined above """
     iCloudStatus = 0x86
+
 
 class LocationFields(IntEnum):
     """The matching criteria which take a Location, as defined above"""
@@ -199,31 +203,30 @@ class LogicRule(IntEnum):
 
 class Offset(IntEnum):
     """Byte offsets for the fields"""
-    INTLENGTH = 67;           # The length on a int criteria starting at the first int
-    SUBEXPRESSIONLENGTH = 192 # The length of a subexpression starting from FIELD
+    INTLENGTH = 67;            # The length on a int criteria starting at the first int
+    SUBEXPRESSIONLENGTH = 192  # The length of a subexpression starting from FIELD
 
     # INFO OFFSETS
     # Offsets for bytes which...
-    LIVEUPDATE = 0           # determine whether live updating is enabled - Absolute offset
-    MATCHBOOL = 1            # determine whether logical matching is to be performed - Absolute offset
-    LIMITBOOL = 2            # determine whether results are limited - Absolute offset
-    LIMITMETHOD = 3          # determine by what criteria the results are limited - Absolute offset
-    SELECTIONMETHOD = 7      # determine by what criteria limited playlists are populated - Absolute offset
-    LIMITINT = 8             # determine the limited - Absolute offset
-    LIMITCHECKED = 12        # determine whether to exclude unchecked items - Absolute offset
-    SELECTIONMETHODSIGN = 13 # determine whether certain selection methods are "most" or "least" - Absolute offset
+    LIVEUPDATE = 0            # determine whether live updating is enabled - Absolute offset
+    MATCHBOOL = 1             # determine whether logical matching is to be performed - Absolute offset
+    LIMITBOOL = 2             # determine whether results are limited - Absolute offset
+    LIMITMETHOD = 3           # determine by what criteria the results are limited - Absolute offset
+    SELECTIONMETHOD = 7       # determine by what criteria limited playlists are populated - Absolute offset
+    LIMITINT = 8              # determine the limited - Absolute offset
+    LIMITCHECKED = 12         # determine whether to exclude unchecked items - Absolute offset
+    SELECTIONMETHODSIGN = 13  # determine whether certain selection methods are "most" or "least" - Absolute offset
 
     # CRITERIA OFFSETS
     # Offsets for bytes which...
-    LOGICTYPE = 15    # determine whether all or any criteria must match - Absolute offset
-    FIELD = 139       # determine what is being matched (Artist, Album, &c) - Absolute offset
-    LOGICSIGN = 1     # determine whether the matching rule is positive or negative (e.g., is vs. is not) - Relative offset from FIELD
-    LOGICRULE = 4     # determine the kind of logic used (is, contains, begins, &c) - Relative offset from FIELD
-    STRING = 54       # begin string data - Relative offset from FIELD
-    INTA = 57         # begin the first int - Relative offset from FIELD
-    INTB = 24         # begin the second int - Relative offset from INTA
-    TIMEMULTIPLE = 73 # begin the int with the multiple of time - Relative offset from FIELD
-    TIMEVALUE = 65    # begin the inverse int with the value of time - Relative offset from FIELD
-    SUBLOGICTYPE = 68 # determine whether all or any criteria must match - Relative offset from FIELD
-    SUBINT = 61       # begin the first int - Relative offset from FIELD
-
+    LOGICTYPE = 15     # determine whether all or any criteria must match - Absolute offset
+    FIELD = 139        # determine what is being matched (Artist, Album, &c) - Absolute offset
+    LOGICSIGN = 1      # determine whether the matching rule is positive or negative (e.g., is vs. is not) - Relative offset from FIELD
+    LOGICRULE = 4      # determine the kind of logic used (is, contains, begins, &c) - Relative offset from FIELD
+    STRING = 54        # begin string data - Relative offset from FIELD
+    INTA = 57          # begin the first int - Relative offset from FIELD
+    INTB = 24          # begin the second int - Relative offset from INTA
+    TIMEMULTIPLE = 73  # begin the int with the multiple of time - Relative offset from FIELD
+    TIMEVALUE = 65     # begin the inverse int with the value of time - Relative offset from FIELD
+    SUBLOGICTYPE = 68  # determine whether all or any criteria must match - Relative offset from FIELD
+    SUBINT = 61        # begin the first int - Relative offset from FIELD
