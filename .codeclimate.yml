@@ -22,6 +22,9 @@ engines:
   sonar-python:
     enabled: true
     checks:
-      # Disable  "Rename function to match the regular expression ^[a-z_][a-z0-9_]{2,}$"
+      # Disable "Remove this commented out code."
+      python:S125:
+        enabled: false
+      # Disable "Rename function to match the regular expression ^[a-z_][a-z0-9_]{2,}$"
       python:S1542:
         enabled: false

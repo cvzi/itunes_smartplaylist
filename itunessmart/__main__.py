@@ -20,6 +20,7 @@ except ImportError:
     sys.path.insert(0, include)
     import itunessmart
 
+
 def printWithoutException(s):
     try:
         print(s)
@@ -50,9 +51,8 @@ python3 -m itunessmart {iTunesLibraryFile} {outputDirectory}
         home = os.path.expanduser("~")
         folder = os.path.join(home, "Music/iTunes")
         iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
-    elif not os.path.isfile(iTunesLibraryFile):
-        if os.path.isfile(os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")):
-            iTunesLibraryFile = os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")
+    elif not os.path.isfile(iTunesLibraryFile) and os.path.isfile(os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")):
+        iTunesLibraryFile = os.path.join(iTunesLibraryFile, "iTunes Music Library.xml")
 
     while not os.path.isfile(iTunesLibraryFile):
         iTunesLibraryFile = input("# Please enter the path of your `iTunes Music Library.xml`: ")
