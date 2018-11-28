@@ -79,7 +79,7 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
     f = _minimize(_combineRules(fulltree, persistentIDMapping, createSubplaylists))
 
     if f:
-        y = _convertRule(f, depth=0, docs = [])
+        y = _convertRule(f, depth=0, docs=[])
         if len(y) == 3:
             # Complete doc
             globalmatch, rules, subplaylists = y

@@ -20,7 +20,6 @@ except ImportError:
     sys.path.insert(0, include)
     import itunessmart
 
-
 def printWithoutException(s):
     try:
         print(s)

@@ -80,15 +80,12 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                     parent.append(current)
                     current = current[key]
                 current_islist = True
-            else:
-                pass
+            # else:
+            #     pass
         elif event == "end":
-            if elem.tag == 'key':
-                pass
-            elif elem.tag == 'dict':
-                current = parent.pop()
-                current_islist = isinstance(current, list)
-            elif elem.tag == 'array':
+            # if elem.tag == 'key':
+            #     pass
+            elif elem.tag == 'dict' or elem.tag == 'array':
                 current = parent.pop()
                 current_islist = isinstance(current, list)
             else:
@@ -149,7 +146,6 @@ def createPlaylistTree(library: Library) -> Tuple[Node, dict]:
         # Clean up tracks array
         if 'Playlist Items' in playlist:
             playlist['Playlist Items'] = [[dictionary[x] for x in dictionary][0] for dictionary in playlist['Playlist Items']]
-
 
         if 'Playlist Persistent ID' not in playlist:
             otherPlaylists.append(playlist)
