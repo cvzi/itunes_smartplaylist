@@ -1,0 +1,23 @@
+exclude_paths:
+  - 'tests/**'
+engines:
+  bandit:
+    enabled: true
+  duplication:
+    enabled: false
+  fixme:
+    enabled: true
+  pep8:
+    enabled: true
+    checks:
+      # Disable "Line too long"
+      E501:
+        enabled: false 
+  radon:
+    enabled: true
+  sonar-python:
+    enabled: true
+    checks:
+      # Disable  "Rename function to match the regular expression ^[a-z_][a-z0-9_]{2,}$"
+      python:S1542:
+        enabled: false
