@@ -1,8 +1,10 @@
+dist: xenial
 language: python
 python:
   - "3.5"
   - "3.6"
-  - "3.7-dev"  # 3.7 development branch
+  - "3.7"
+  - nightly
   - "pypy3.5"
 # command to install dependencies
 install:
@@ -15,11 +17,11 @@ script:
   - python setup.py test
   - pytest
   - nosetests
-  - coverage run -a tests/test_small.py
-  - coverage run -a tests/test_full.py
+  - if [[ $TRAVIS_PYTHON_VERSION != 'nightly' ]]; then coverage run -a tests/test_small.py; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'nightly' ]]; then coverage run -a tests/test_full.py; fi
 # must be last (coverage will not track an installed module)
   - python setup.py install 
 after_success:
-  - coveralls
-  - coverage xml
-  - python-codacy-coverage -r coverage.xml
+  - if [[ $TRAVIS_PYTHON_VERSION != 'nightly' ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'nightly' ]]; then coverage xml; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 'nightly' ]]; then python-codacy-coverage -r coverage.xml; fi
