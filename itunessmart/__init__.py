@@ -66,6 +66,7 @@ class BytesParser(Parser):
     """Parse data from raw bytes"""
     def __init__(self, data_info, data_criteria):
         """Parse data from raw bytes"""
+        super().__init__()
         self._parser = SmartPlaylistParser()
         self._parser.data(data_info, data_criteria)
         self._parser.parse()
