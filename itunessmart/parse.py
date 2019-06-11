@@ -120,15 +120,15 @@ class SmartPlaylistParser:
                 elif any(self.criteria[self.offset] == e.value for e in BooleanFields):
                     self.ProcessBooleanField()
                 elif any(self.criteria[self.offset] == e.value for e in MediaKindFields):
-                    self.ProcessListField(MediaKindFields, MediaKinds, type="mediakind")
+                    self.ProcessListField(MediaKindFields, MediaKinds, listtype="mediakind")
                 elif any(self.criteria[self.offset] == e.value for e in PlaylistFields):
                     self.ProcessPlaylistField()
                 elif any(self.criteria[self.offset] == e.value for e in CloudFields):
-                    self.ProcessListField(CloudFields, iCloudStatus, type="cloud")
+                    self.ProcessListField(CloudFields, iCloudStatus, listtype="cloud")
                 elif any(self.criteria[self.offset] == e.value for e in LoveFields):
-                    self.ProcessListField(LoveFields, LoveStatus, type="love")
+                    self.ProcessListField(LoveFields, LoveStatus, listtype="love")
                 elif any(self.criteria[self.offset] == e.value for e in LocationFields):
-                    self.ProcessListField(LocationFields, LocationKinds, type="location")
+                    self.ProcessListField(LocationFields, LocationKinds, listtype="location")
                 elif self.criteria[self.offset] == 0:
                     # Subexpression
 
@@ -621,11 +621,11 @@ class SmartPlaylistParser:
         if len(self.criteria) > self.offset:
             self.again = True
 
-    def ProcessListField(self, fields, valueDict, type="list"):
+    def ProcessListField(self, fields, valueDict, listtype="list"):
         self.fieldName = fields(self.criteria[self.offset]).name
         self.workingOutput = self.fieldName
         self.workingQuery = "(" + self.fieldName
-        self.workingFull = {"field": self.fieldName, "type": type}
+        self.workingFull = {"field": self.fieldName, "type": listtype}
 
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(
