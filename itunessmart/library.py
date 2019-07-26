@@ -100,6 +100,19 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                         elem.text = int(time.mktime(datetime.datetime.strptime(elem.text, "%Y-%m-%dT%H:%M:%SZ").timetuple()))
                     except ValueError:
                         elem.text = 0
+                    except OverflowError as e:
+                        t = datetime.datetime.strptime(elem.text, "%Y-%m-%dT%H:%M:%SZ").timetuple()
+                        if t.tm_year < 1971:
+                            d = 1980 - t.tm_year
+                            t2 = time.struct_time([t.tm_year + d, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, t.tm_wday, t.tm_yday, t.tm_isdst])
+                            elem.text = int(time.mktime(t2)) - d * 31557600
+                        elif t.tm_year > 2030:
+                            d = t.tm_year - 2040
+                            t2 = time.struct_time([t.tm_year - d, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, t.tm_wday, t.tm_yday, t.tm_isdst])
+                            elem.text = int(time.mktime(t2)) + d * 31557600
+                        else:
+                            raise e
+
                 elif elem.tag == 'data':
                     elem.text = base64.standard_b64decode("".join(elem.text.split()))
 
