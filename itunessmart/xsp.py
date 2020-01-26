@@ -129,7 +129,7 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
 
                     # combine with existing rule
                     combined = False
-                    if operator is "or" and isinstance(y, collections.Mapping):
+                    if operator == "or" and isinstance(y, collections.Mapping):
                         for r in t[1]:
                             if isinstance(r, collections.Mapping) and r["field"] == y["field"] and r["operator"] == y["operator"]:
                                 if not isinstance(r["value"], list):
