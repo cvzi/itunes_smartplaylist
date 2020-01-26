@@ -15,6 +15,7 @@ with io.open(os.path.join("itunessmart", "__init__.py"), encoding="utf-8") as f:
 setuptools.setup(
     name="itunessmart",
     version=version,
+    license="MIT",
     author="cuzi",
     author_email="cuzi@openmail.cc",
     description="Decode iTunes Smart playlist rules. Convert iTunes smart playlists to Kodi xsp smart playlists.",
