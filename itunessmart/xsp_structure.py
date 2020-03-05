@@ -2,6 +2,17 @@
 Module holding static data related to the XSP playlist format.
 """
 
+__all__ = [
+    "xml_dec",
+    "xml_doc",
+    "xml_rule",
+    "xml_value",
+    "xsp_fields",
+    "xsp_allowed_fields",
+    "xsp_operators",
+    "xsp_allowed_operators",
+    "xsp_sorting"]
+
 xml_dec = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>'
 xml_doc = '''{dec}
 <smartplaylist type="songs">
