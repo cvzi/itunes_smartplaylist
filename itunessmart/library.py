@@ -119,7 +119,12 @@ def readiTunesLibrary(libraryFileStream: BinaryIO) -> Library:
                 if current_islist:
                     current.append(elem.text)
                 else:
-                    current[key] = elem.text
+                    if elem.tag == 'key':
+                        key = elem.text
+                    elif key is not None:
+                        current[key] = elem.text
+                    else:
+                        raise LibraryException("unexpected end tag %r" % (elem, ))
 
             elem.clear()
     plist.clear()
