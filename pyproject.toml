@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "itunessmart"
+dynamic = ["version"]
+authors = [{name = "cuzi", email = "cuzi@openmail.cc"}]
+license = {text = "MIT"}
+description = "Decode iTunes Smart playlist rules. Convert iTunes smart playlists to Kodi xsp smart playlists."
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://github.com/cvzi/itunes_smartplaylist"
+
+[project.optional-dependencies]
+testing = ["pytest"]
+
+[tool.setuptools]
+package-dir = {itunessmart = "itunessmart"}
+packages = ["itunessmart"]
+zip-safe = true
+include-package-data = false
+
+[tool.setuptools.dynamic]
+version = {attr = "itunessmart._version.__version__"}

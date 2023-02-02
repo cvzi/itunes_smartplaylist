@@ -2,7 +2,7 @@
 iTunes Smart playlist parser with Python. Decode itunes smart playlist rules from base64 data. Convert iTunes smart playlists to Kodi xsp smart playlists.
 """
 
-__version__ = '1.1.5'
+from ._version import __version__
 __author__ = 'cuzi'
 __email__ = 'cuzi@openmail.cc'
 __source__ = 'https://github.com/cvzi/itunes_smartplaylist'
