@@ -32,4 +32,4 @@ jobs:
         pytest
     - name: Test build
       run: |
-        python -m pip build
+        python -m build
