@@ -7,7 +7,7 @@ import unicodedata
 import re
 import html
 import os.path
-import collections
+from collections.abc import Mapping
 from typing import Callable, List, Tuple
 
 from itunessmart.xsp_structure import *
@@ -129,9 +129,9 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
 
                     # combine with existing rule
                     combined = False
-                    if operator == "or" and isinstance(y, collections.Mapping):
+                    if operator == "or" and isinstance(y, Mapping):
                         for r in t[1]:
-                            if isinstance(r, collections.Mapping) and r["field"] == y["field"] and r["operator"] == y["operator"]:
+                            if isinstance(r, Mapping) and r["field"] == y["field"] and r["operator"] == y["operator"]:
                                 if not isinstance(r["value"], list):
                                     r["value"] = [r["value"]]
                                 r["value"].append(y["value"])
