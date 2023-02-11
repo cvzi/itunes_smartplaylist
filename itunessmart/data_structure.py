@@ -30,7 +30,7 @@ MediaKinds = {
         0x40: "TV Show",
        0x400: "Home Video",
      0x10000: "iTunes Extras",
-    0x100000: "Voice Memo",
+    0x100000: "Voice Memo",  # TODO "Voice Memo" might be 0x00 on Apple Music
     0x200000: "iTunes U",
     0xC00000: "Book",
     # TODO mediakinds of toplevel playlists
