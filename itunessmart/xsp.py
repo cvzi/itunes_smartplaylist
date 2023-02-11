@@ -37,7 +37,7 @@ def createXSPFile(directory: str, name: str, smartPlaylist: SmartPlaylist, creat
     """
 
     if friendlyFilename is None:
-        friendlyFilename = lambda name: re.sub('[^\w\s-]', '', unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")).strip()
+        friendlyFilename = lambda name: re.sub(r'[^\w\s-]', '', unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode("utf-8")).strip()
 
     r = []
     for playlistname, content in createXSP(name=name, smartPlaylist=smartPlaylist, createSubplaylists=createSubplaylists, persistentIDMapping=persistentIDMapping):
