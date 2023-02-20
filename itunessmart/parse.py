@@ -450,21 +450,15 @@ class SmartPlaylistParser:
                 self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
 
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s%s" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
-                self.workingQuery += " = '%s%s'" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                self.workingOutput += " is %s" % self._formatPersistentID(idpart0, idpart1)
+                self.workingQuery += " = '%s'" % self._formatPersistentID(idpart0, idpart1)
                 self.workingFull["operator"] = "is"
-                self.workingFull["value"] = "%s%s" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                self.workingFull["value"] = "%s" % self._formatPersistentID(idpart0, idpart1)
             else:
-                self.workingOutput += " is not %s%s" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
-                self.workingQuery += " != '%s%s'" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                self.workingOutput += " is not %s" % self._formatPersistentID(idpart0, idpart1)
+                self.workingQuery += " != '%s'" % self._formatPersistentID(idpart0, idpart1)
                 self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = "%s%s" % (
-                    hex(idpart0)[2:].upper(), hex(idpart1)[2:].upper())
+                self.workingFull["value"] = "%s" % self._formatPersistentID(idpart0, idpart1)
 
         else:  # pragma: no cover
             errormessage = "Unkown logic rule in ProcessPlaylistField: LogicRule=%d" % self.criteria[self.logicRulesOffset]
@@ -707,3 +701,7 @@ class SmartPlaylistParser:
     def _dateString(timestamp):
         return datetime.datetime.utcfromtimestamp(
             int(timestamp)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    @staticmethod
+    def _formatPersistentID(idpart0, idpart1):
+        return '{:08X}{:08X}'.format(idpart0, idpart1)
