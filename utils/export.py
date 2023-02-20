@@ -7,6 +7,7 @@ import sys
 # import json
 import traceback
 # import base64
+import re
 
 
 try:
@@ -22,6 +23,13 @@ def printUni(s):
     sys.stdout.buffer.write(str(s).encode("UTF-8"))
     sys.stdout.buffer.write(b"\n")
 
+def repl(match, playlist):
+    if match.group('ID') in playlistsByPersistentId:
+        return 'PlaylistName' + match.group('op') + '"' + playlistsByPersistentId[match.group('ID')]['Name'] + '"'
+    else:
+        print("No playlist with Persistent ID %r (mentinoned in playlist %r)" % (match.group('ID'), playlist['Name']))
+        return match.group(0)
+
 
 if __name__ == "__main__":
 
@@ -29,15 +37,18 @@ if __name__ == "__main__":
     folder = os.path.join(home, "Music/iTunes")
     iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
 
+    # TODO remove this
+    iTunesLibraryFile = r'C:\Users\cuzi\Dropbox\Coding\Python\cvzi\itunes_smartplaylist\tests\library_onlysmartplaylists.xml'
+
     print("Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
 
         # Read XML file
         library = itunessmart.readiTunesLibrary(fs)
 
-#    # Create tree from XML data
-#    treeRoot, playlistsByPersistentId = itunessmart.createPlaylistTree(library)
-#
+    # Create tree from XML data
+    treeRoot, playlistsByPersistentId = itunessmart.createPlaylistTree(library)
+
 #    # Print the paylist tree
 #    try:
 #        from asciitree.asciitree_py3 import draw_tree
@@ -71,10 +82,15 @@ if __name__ == "__main__":
                 parser.update_data_bytes(playlist['Smart Info'], playlist['Smart Criteria'])
                 filename = ("".join(x for x in playlist['Name'] if x.isalnum())) + ".txt"
                 res[playlist['Name']] = parser.result.queryTree
+                text_output = parser.result.output
+
+                # Replace 'PlaylistPersistentID is <ID>' with 'PlaylistName is "<Name>"'
+                text_output = re.sub(r'PlaylistPersistentID(?P<op>[is not]+)(?P<ID>[0-9A-F]{2,16})', lambda m: repl(m, playlist), text_output)
+
                 with open(os.path.join(outputDirectory, filename), "w") as fs:
                     fs.write(playlist['Name'])
                     fs.write("\r\n\r\n")
-                    fs.write(parser.result.output)
+                    fs.write(text_output)
                     # fs.write(parser.result.query)
                     # fs.write(json.dumps(parser.result.queryTree, indent=2))
                     # fs.write(parser.result.ignore)
