@@ -37,9 +37,6 @@ if __name__ == "__main__":
     folder = os.path.join(home, "Music/iTunes")
     iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
 
-    # TODO remove this
-    iTunesLibraryFile = r'C:\Users\cuzi\Dropbox\Coding\Python\cvzi\itunes_smartplaylist\tests\library_onlysmartplaylists.xml'
-
     print("Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
 
