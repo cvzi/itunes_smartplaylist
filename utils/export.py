@@ -9,14 +9,10 @@ import traceback
 # import base64
 import re
 
-
-try:
-    import itunessmart
-except ImportError:
-    include = os.path.relpath(os.path.join(os.path.dirname(__file__), ".."))
-    sys.path.insert(0, include)
-    import itunessmart
-    print("Imported itunessmart from %s" % os.path.abspath(os.path.join(include, "itunessmart")))
+# Try to import from parent directory
+include = os.path.relpath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, include)
+import itunessmart
 
 
 def printUni(s):
