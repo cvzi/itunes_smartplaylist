@@ -33,9 +33,12 @@ def repl(match, playlist):
 
 if __name__ == "__main__":
 
-    home = os.path.expanduser("~")
-    folder = os.path.join(home, "Music/iTunes")
-    iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
+    if len(sys.argv)>1:
+        iTunesLibraryFile = sys.argv[1];
+    else:
+        home = os.path.expanduser("~")
+        folder = os.path.join(home, "Music/iTunes")
+        iTunesLibraryFile = os.path.join(folder, "iTunes Music Library.xml")
 
     print("Reading %s . . . " % iTunesLibraryFile)
     with open(iTunesLibraryFile, "rb") as fs:
