@@ -11,7 +11,7 @@ Convert smart playlist information to a readable form.
 
 This module is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
 
-It was tested on Windows 10 with iTunes 12.10.6.2 (64bit) and Python 3.8.
+It was tested on Windows 11 with iTunes 12.13.7.1 (64bit) and Python 3.13.
 
 It does not work with Python 2.x.
 
