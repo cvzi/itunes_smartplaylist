@@ -23,7 +23,7 @@ jobs:
     name: Publish to pypi.org
     environment:
       name: pypi
-      url: https://pypi.org/p/itunessmart/
+      url: https://pypi.org/project/itunessmart/
     runs-on: ubuntu-latest
     needs: build-package
     permissions:
@@ -36,4 +36,4 @@ jobs:
           name: Packages
           path: dist
       - name: Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.9.0
+        uses: pypa/gh-action-pypi-publish@v1.12.4
