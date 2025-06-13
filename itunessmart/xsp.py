@@ -2,6 +2,7 @@
 Module to convert from a parser result to a XSP playlist
 """
 import logging
+import copy
 import hashlib
 import unicodedata
 import re
@@ -66,7 +67,7 @@ def createXSP(name: str, smartPlaylist: SmartPlaylist, createSubplaylists: bool 
         persistentIDMapping = {}
 
     queryTree = smartPlaylist.queryTree
-    fulltree = queryTree["fulltree"]
+    fulltree = copy.deepcopy(queryTree["fulltree"])
 
     if not fulltree:
         raise EmptyPlaylistException("Playlist is empty", name)
@@ -146,9 +147,31 @@ def _combineRules(obj, persistentIDMapping, createSubplaylists):
                 result.append(t[1][0])
         return result
     else:
-        if not obj["field"] in xsp_allowed_fields:
+        if obj["field"] not in xsp_allowed_fields:
             return None
-        if not obj["operator"] in xsp_allowed_operators:
+
+        if obj["operator"] == "between":
+            if obj["value"][0] == obj["value"][1]:
+                # return "is" the first value if both vaules are the same e.g. Rating BETWEEN 4 AND 4
+                obj["operator"] = "is"
+                obj["value"] = obj["value"][0]
+                return obj
+            return ('and', [
+                {'field': obj["field"], 'operator': 'greater than', 'value': obj["value"][0] - 1},
+                {'field': obj["field"], 'operator': 'less than', 'value': obj["value"][1] + 1}
+                ])
+        elif obj["operator"] == "not between":
+             if obj["value"][0] == obj["value"][1]:
+                # return "is not" the first value if both values are the same
+                obj["operator"] = "is not"
+                obj["value"] = obj["value"][0]
+                return obj
+             return ('and', [
+                {'field': obj["field"], 'operator': 'less than', 'value': obj["value"][0]},
+                {'field': obj["field"], 'operator': 'greater than', 'value': obj["value"][1]}
+                ])
+
+        if obj["operator"] not in xsp_allowed_operators:
             return None
 
         if obj["field"] == "PlaylistPersistentID":
