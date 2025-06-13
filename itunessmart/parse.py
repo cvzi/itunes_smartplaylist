@@ -2,6 +2,7 @@
 Module holding the parsing algorithm
 """
 
+import sys
 import logging
 import base64
 import datetime
@@ -699,8 +700,11 @@ class SmartPlaylistParser:
 
     @staticmethod
     def _dateString(timestamp):
-        return datetime.datetime.utcfromtimestamp(
-            int(timestamp)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        if sys.version_info < (3, 11):
+            return datetime.datetime.utcfromtimestamp(
+                int(timestamp)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.fromtimestamp(
+            int(timestamp), datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     @staticmethod
     def _formatPersistentID(idpart0, idpart1):
