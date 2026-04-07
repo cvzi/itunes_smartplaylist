@@ -123,7 +123,7 @@ class SmartPlaylistParser:
                     subgroup_operator = self._operatorFromLogicType(self.criteria[self.offset + Offset.SUBLOGICTYPE])
 
                     numberOfSubExpression = self._iTunesUint(
-                        self.criteria[self.offset + Offset.SUBINT:self.offset + +Offset.SUBINT + 4])
+                        self.criteria[self.offset + Offset.SUBINT:self.offset + Offset.SUBINT + 4])
 
                     self.subStack.append({
                         "N": numberOfSubExpression,
@@ -285,6 +285,7 @@ class SmartPlaylistParser:
         self.workingOutput += '" '
         failed = False
         if self.criteria[self.offset] == StringFields.Kind:
+            self.workingFull["value"] = self.content
             self.workingQuery = ""
             for kind in FileKinds:
                 if KindEval(kind, self.content):
