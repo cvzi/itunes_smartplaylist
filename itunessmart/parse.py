@@ -151,7 +151,7 @@ class SmartPlaylistParser:
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
                 else:  # pragma: no cover
-                    errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
+                    errormessage = "Unknown field: %s" % (hex(self.criteria[self.offset]))
                     logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
                     logging.debug(self.criteria[self.offset:self.offset + 100])
@@ -302,7 +302,6 @@ class SmartPlaylistParser:
     def FinishStringField(self, end, KindEval):
         self.workingOutput += self.content
         self.workingOutput += '" '
-        failed = False
         query_node = None
         if self.criteria[self.offset] == StringFields.Kind:
             self.workingFull["value"] = self.content
@@ -342,11 +341,8 @@ class SmartPlaylistParser:
         if len(self.ignore) > 0:
             self.ignore += " or\n" if self.current_operator == "or" else " and\n"
 
-        if failed:
-            self.ignore += self.workingOutput
-        else:
-            self.queryTreeCurrent.append(query_node)
-            self.fullTreeCurrent.append(self.workingFull)
+        self.queryTreeCurrent.append(query_node)
+        self.fullTreeCurrent.append(self.workingFull)
 
     def ProcessIntField(self):
         self.fieldName = IntFields(self.criteria[self.offset]).name

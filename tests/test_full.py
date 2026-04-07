@@ -465,7 +465,7 @@ testdata = [
         "expected" : {
             "output" : "BPM is not 60 or\nPlaylistPersistentID is not CF3419CE9A5B19E2 or\nLastPlayed is before 1507248000 or\nPurchased is False or\nDateModified is not in the last 3 days or\nBitRate is 128\nLimited to 25 Items selected by random\nExclude unchecked items",
             "query": "(BPM != 60) OR (PlaylistPersistentID != 'CF3419CE9A5B19E2') OR TIMESTAMP(LastPlayed) < 1507248000 OR (Purchased = 0) OR (TIMESTAMP(NOW()) - TIMESTAMP(DateModified)) > 259200 OR (BitRate = 128)",
-            "ignore": "Not processed: Unkown field: 0xc6 "
+            "ignore": "Not processed: Unknown field: 0xc6 "
         }
     },
     {
