@@ -13,11 +13,14 @@ class FileKind:
 
 FileKinds = [
     FileKind("Protected AAC audio file", ".m4p"),
+    FileKind("Purchased AAC audio file", ".m4a"),
+    FileKind("Apple Lossless audio file", ".m4a"),
     FileKind("MPEG audio file", ".mp3"),
     FileKind("AIFF audio file", ".aiff"),
     FileKind("WAV audio file", ".wav"),
     FileKind("QuickTime movie file", ".mov"),
     FileKind("MPEG-4 video file", ".mp4"),
+    FileKind("Purchased MPEG-4 video file", ".mp4"),
     FileKind("AAC audio file", ".m4a")
 ]
 

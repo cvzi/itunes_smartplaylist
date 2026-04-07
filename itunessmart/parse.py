@@ -8,6 +8,7 @@ import base64
 import datetime
 import struct
 import json
+import re
 from itunessmart.data_structure import *
 
 
@@ -234,7 +235,7 @@ class SmartPlaylistParser:
                 self.workingQuery += " NOT LIKE '%"
                 self.workingFull["operator"] = "not like"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query in kind.name
+                KindEval = lambda kind, query: query.lower() in kind.name.lower()
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Is:
@@ -247,14 +248,14 @@ class SmartPlaylistParser:
                 self.workingQuery += " != '"
                 self.workingFull["operator"] = "is not"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query == kind.name
+                KindEval = lambda kind, query: query.lower() == kind.name.lower()
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Starts:
             self.workingOutput += " starts with "
             self.workingQuery += " Like '"
             self.workingFull["operator"] = "starts with"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query not in kind.name
+                KindEval = lambda kind, query: kind.name.lower().startswith(query.lower())
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Ends:
@@ -262,7 +263,7 @@ class SmartPlaylistParser:
             self.workingQuery += " Like '%"
             self.workingFull["operator"] = "ends with"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: kind.name.index(query) == len(kind.name) - len(query)
+                KindEval = lambda kind, query: kind.name.lower().endswith(query.lower())
             end = True
 
         self.workingOutput += '"'
@@ -280,35 +281,63 @@ class SmartPlaylistParser:
         self.FinishStringField(end, KindEval)
         return
 
+    def _should_use_structured_kind_match(self, matched_kinds):
+        if not matched_kinds:
+            return False
+
+        if self.criteria[self.logicRulesOffset] == LogicRule.Is:
+            return True
+
+        query = self.content.strip().lower()
+        if len(query) < 3 or len(matched_kinds) > 3:
+            return False
+
+        generic_tokens = {"audio", "video", "file", "movie", "protected", "purchased", "quicktime"}
+        if query in generic_tokens:
+            return False
+
+        query_pattern = re.compile(r"\b%s\b" % re.escape(query))
+        return all(query_pattern.search(kind.name.lower()) for kind in matched_kinds)
+
     def FinishStringField(self, end, KindEval):
         self.workingOutput += self.content
         self.workingOutput += '" '
         failed = False
+        query_node = None
         if self.criteria[self.offset] == StringFields.Kind:
             self.workingFull["value"] = self.content
-            self.workingQuery = ""
-            for kind in FileKinds:
-                if KindEval(kind, self.content):
-                    if len(self.workingQuery) > 0:
-                        if (len(self.queryTreeCurrent) == 0 and not self.again) or self.current_operator == "or":
-                            self.workingQuery += " OR "
-                        else:
-                            failed = True
-                            break
-
-                    self.workingQuery += "(lower(Uri)"
-                    self.workingQuery += (" LIKE '%" +
-                                          kind.extension +
-                                          "')") if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else (" NOT LIKE '%" +
-                                                                                                                         kind.extension +
-                                                                                                                         "%')")
-                    self.workingFull["kind_value"] = kind.extension
-                    self.workingFull["kind_operator"] = "like" if self.criteria[
-                        self.logicSignOffset] == LogicSign.StringPositive else "not like"
+            matched_kinds = [kind for kind in FileKinds if KindEval(kind, self.content)]
+            kindOperator = "like" if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else "not like"
+            if self._should_use_structured_kind_match(matched_kinds):
+                kindNodes = []
+                joiner = "or" if kindOperator == "like" else "and"
+                for kind in matched_kinds:
+                    kindQuery = "(lower(Uri)"
+                    kindQuery += (" LIKE '%" +
+                                  kind.extension +
+                                  "')") if kindOperator == "like" else (" NOT LIKE '%" +
+                                                                         kind.extension +
+                                                                         "%')")
+                    kindNodes.append(("Kind", kindQuery))
+                if len(kindNodes) == 1:
+                    query_node = kindNodes[0]
+                else:
+                    query_node = {joiner: kindNodes}
+            else:
+                logging.warning(
+                    'Treating Kind rule as free text instead of structured file-kind match: %s %s "%s"',
+                    self.fieldName,
+                    self.workingFull["operator"],
+                    self.content,
+                )
+                self.workingQuery += self.content.lower()
+                self.workingQuery += "%')" if end else "')"
+                query_node = (self.fieldName, self.workingQuery)
         else:
             self.workingQuery += self.content.lower()
             self.workingQuery += "%')" if end else "')"
             self.workingFull["value"] = self.content
+            query_node = (self.fieldName, self.workingQuery)
 
         if len(self.ignore) > 0:
             self.ignore += " or\n" if self.current_operator == "or" else " and\n"
@@ -316,7 +345,7 @@ class SmartPlaylistParser:
         if failed:
             self.ignore += self.workingOutput
         else:
-            self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
+            self.queryTreeCurrent.append(query_node)
             self.fullTreeCurrent.append(self.workingFull)
 
     def ProcessIntField(self):
