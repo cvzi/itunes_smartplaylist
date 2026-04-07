@@ -49,7 +49,8 @@ iCloudStatus = {
     0x03: "Uploaded",
     0x04: "Ineligible",
     0x05: "Local Only",
-    0x07: "Duplicate"
+    0x07: "Duplicate",
+    0x09: "No Longer Available",
 }
 
 LoveStatus = {

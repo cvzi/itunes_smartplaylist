@@ -299,7 +299,7 @@ testdata = [
             "AAAAAAAAAAAABABBAHAAAAAEAQAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             "AAAAAAAAAAAAAAAAAAAABABPAEI="),
         "expected" : {
-            "query" : "(lower(Artist) LIKE '%ap%') AND (lower(Artist) LIKE '%ob%')"
+            "query" : "(lower(Artist) LIKE '%a%') AND ( (lower(Artist) LIKE '%ap%') AND (lower(Artist) LIKE '%ob%') )"
         }
     },
     {
@@ -690,4 +690,3 @@ def run_all(verbose=False):
 
 if __name__ == '__main__':
     run_all(verbose=False)
-
