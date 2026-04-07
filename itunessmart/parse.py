@@ -562,7 +562,7 @@ class SmartPlaylistParser:
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(
                 self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
-            value = self._lookupListValue(valueDict, number)
+            value = self._lookupListValue(valueDict, number, self.fieldName, listtype)
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                 self.workingOutput += " is %s" % value
                 self.workingQuery += " = '%s'" % value
@@ -581,7 +581,7 @@ class SmartPlaylistParser:
             numberB = self._iTunesUint(
                 self.criteria[self.intBOffset:self.intBOffset + 4], self.criteria[self.offset] == IntFields.Rating)
             if numberA == numberB:
-                value = self._lookupListValue(valueDict, numberA)
+                value = self._lookupListValue(valueDict, numberA, self.fieldName, listtype)
                 if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
                     self.workingOutput += " is %s" % value
                     self.workingQuery += " = '%s'" % value
@@ -643,13 +643,19 @@ class SmartPlaylistParser:
 
     @staticmethod
     def _operatorFromLogicType(logictype):
-        return "or" if logictype == 1 else "and"
+        if logictype == 1:
+            return "or"
+        if logictype == 0:
+            return "and"
+
+        logging.error("Unknown logic type encountered: %d; defaulting to 'and'", logictype)
+        return "and"
 
     @staticmethod
-    def _lookupListValue(valueDict, number):
+    def _lookupListValue(valueDict, number, fieldName="unknown", listtype="list"):
         if number in valueDict:
             return valueDict[number]
-        logging.warning("Unknown list value encountered: %d", number)
+        logging.warning("Unknown %s list value encountered for %s: %d", listtype, fieldName, number)
         return "UnknownValue[%d]" % number
 
     def _buildQuery(self, node, nested=False):
@@ -669,6 +675,8 @@ class SmartPlaylistParser:
                     filter(None, (self._buildQuery(child, nested=True) for child in node["or"]))
                 )
             else:
+                return ""
+            if not rendered:
                 return ""
             if nested:
                 return "( %s )" % rendered
