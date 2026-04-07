@@ -791,9 +791,23 @@ class SmartPlaylistParser:
         if operator in {"is in the range", "is not in the range"} and isinstance(value, tuple):
             return "%s %s of %s to %s" % (field, operator, value[0], value[1])
 
-        if operator in {"greater than", "less than", "is after", "is before", "is in the last", "is not in the last"}:
-            connector = " " if operator.startswith("is ") else " is "
-            return "%s%s%s" % (field, connector, value)
+        if operator == "greater than":
+            return "%s is greater than %s" % (field, value)
+
+        if operator == "less than":
+            return "%s is less than %s" % (field, value)
+
+        if operator == "is after":
+            return "%s is after %s" % (field, value)
+
+        if operator == "is before":
+            return "%s is before %s" % (field, value)
+
+        if operator == "is in the last":
+            return "%s is in the last %s" % (field, value)
+
+        if operator == "is not in the last":
+            return "%s is not in the last %s" % (field, value)
 
         if operator == "between" and isinstance(value, tuple):
             return "%s is in the range of %s to %s" % (field, value[0], value[1])
