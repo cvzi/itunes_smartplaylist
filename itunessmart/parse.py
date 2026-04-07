@@ -8,6 +8,7 @@ import base64
 import datetime
 import struct
 import json
+import re
 from itunessmart.data_structure import *
 
 
@@ -71,17 +72,9 @@ class SmartPlaylistParser:
         self.offset = int(Offset.FIELD)
 
         if self.info[Offset.MATCHBOOL] == 1:
-            self.is_or = self.criteria[Offset.LOGICTYPE] == 1
-            if self.is_or:
-                self.conjunctionQuery = " OR "
-                self.conjunctionOutput = ' or\n'
-                self.queryTree["or"] = self.queryTreeCurrent
-                self.fullTree["or"] = self.fullTreeCurrent
-            else:
-                self.conjunctionQuery = " AND "
-                self.conjunctionOutput = ' and\n'
-                self.queryTree["and"] = self.queryTreeCurrent
-                self.fullTree["and"] = self.fullTreeCurrent
+            self.current_operator = self._operatorFromLogicType(self.criteria[Offset.LOGICTYPE])
+            self.queryTree[self.current_operator] = self.queryTreeCurrent
+            self.fullTree[self.current_operator] = self.fullTreeCurrent
 
             while True:
                 self.again = False
@@ -90,13 +83,7 @@ class SmartPlaylistParser:
                     if self.subStack[-1]["N"] == 0:
                         old = self.subStack.pop()
 
-                        self.query = old["query"] + \
-                            old["conjunctionQuery"] + "( %s )" % self.query
-                        self.output = old["output"] + old["conjunctionOutput"] + \
-                            "[\n\t%s\n]" % "\n\t".join(self.output.split("\n"))
-
-                        self.conjunctionQuery = old["conjunctionQuery"]
-                        self.conjunctionOutput = old["conjunctionOutput"]
+                        self.current_operator = old["operator"]
                         self.queryTreeCurrent = old["queryTreeCurrent"]
                         self.fullTreeCurrent = old["fullTreeCurrent"]
                     else:
@@ -133,18 +120,15 @@ class SmartPlaylistParser:
                 elif self.criteria[self.offset] == 0:
                     # Subexpression
 
-                    self.is_or = self.criteria[self.offset +
-                                               Offset.SUBLOGICTYPE] == 1
+                    parent_operator = self.current_operator
+                    subgroup_operator = self._operatorFromLogicType(self.criteria[self.offset + Offset.SUBLOGICTYPE])
 
                     numberOfSubExpression = self._iTunesUint(
-                        self.criteria[self.offset + Offset.SUBINT:self.offset + +Offset.SUBINT + 4])
+                        self.criteria[self.offset + Offset.SUBINT:self.offset + Offset.SUBINT + 4])
 
                     self.subStack.append({
-                        "query": self.query,
-                        "output": self.output,
                         "N": numberOfSubExpression,
-                        "conjunctionQuery": self.conjunctionQuery,
-                        "conjunctionOutput": self.conjunctionOutput,
+                        "operator": parent_operator,
                         "queryTreeCurrent": self.queryTreeCurrent,
                         "fullTreeCurrent": self.fullTreeCurrent,
                     })
@@ -157,32 +141,26 @@ class SmartPlaylistParser:
                     newfulltreecurrent = []
                     self.fullTreeCurrent.append(newfulltree)
 
-                    if self.is_or:
-                        self.conjunctionQuery = " OR "
-                        self.conjunctionOutput = ' or\n'
-                        newtree["or"] = newcurrent
-                        newfulltree["or"] = newfulltreecurrent
-                    else:
-                        self.conjunctionQuery = " AND "
-                        self.conjunctionOutput = ' and\n'
-                        newtree["and"] = newcurrent
-                        newfulltree["and"] = newfulltreecurrent
+                    newtree[subgroup_operator] = newcurrent
+                    newfulltree[subgroup_operator] = newfulltreecurrent
 
-                    self.query = ""
-                    self.output = ""
+                    self.current_operator = subgroup_operator
                     self.queryTreeCurrent = newcurrent
                     self.fullTreeCurrent = newfulltreecurrent
 
                     self.offset += Offset.SUBEXPRESSIONLENGTH
                     self.again = True
                 else:  # pragma: no cover
-                    errormessage = "Unkown field: %s" % (hex(self.criteria[self.offset]))
+                    errormessage = "Unknown field: %s" % (hex(self.criteria[self.offset]))
                     logging.warning(errormessage)
                     self.ignore += "Not processed: %s " % errormessage
                     logging.debug(self.criteria[self.offset:self.offset + 100])
 
                 if not self.again:
                     break
+
+        self.query = self._buildQuery(self._stripImplicitMediaKindFilter(self.root))
+        self.output = self._buildOutputTree(self._stripImplicitMediaKindFilter(self.fullTreeRoot))
 
         if self.info[Offset.LIMITBOOL] == 1:
             # Limit
@@ -257,7 +235,7 @@ class SmartPlaylistParser:
                 self.workingQuery += " NOT LIKE '%"
                 self.workingFull["operator"] = "not like"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query in kind.name
+                KindEval = lambda kind, query: query.lower() in kind.name.lower()
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Is:
@@ -270,14 +248,14 @@ class SmartPlaylistParser:
                 self.workingQuery += " != '"
                 self.workingFull["operator"] = "is not"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query == kind.name
+                KindEval = lambda kind, query: query.lower() == kind.name.lower()
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Starts:
             self.workingOutput += " starts with "
             self.workingQuery += " Like '"
             self.workingFull["operator"] = "starts with"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: query not in kind.name
+                KindEval = lambda kind, query: kind.name.lower().startswith(query.lower())
             end = True
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Ends:
@@ -285,7 +263,7 @@ class SmartPlaylistParser:
             self.workingQuery += " Like '%"
             self.workingFull["operator"] = "ends with"
             if self.criteria[self.offset] == StringFields.Kind:
-                KindEval = lambda kind, query: kind.name.index(query) == len(kind.name) - len(query)
+                KindEval = lambda kind, query: kind.name.lower().endswith(query.lower())
             end = True
 
         self.workingOutput += '"'
@@ -303,51 +281,68 @@ class SmartPlaylistParser:
         self.FinishStringField(end, KindEval)
         return
 
+    def _should_use_structured_kind_match(self, matched_kinds):
+        if not matched_kinds:
+            return False
+
+        if self.criteria[self.logicRulesOffset] == LogicRule.Is:
+            return True
+
+        query = self.content.strip().lower()
+        if len(query) < 3 or len(matched_kinds) > 3:
+            return False
+
+        generic_tokens = {"audio", "video", "file", "movie", "protected", "purchased", "quicktime"}
+        if query in generic_tokens:
+            return False
+
+        query_pattern = re.compile(r"\b%s\b" % re.escape(query))
+        return all(query_pattern.search(kind.name.lower()) for kind in matched_kinds)
+
     def FinishStringField(self, end, KindEval):
         self.workingOutput += self.content
         self.workingOutput += '" '
-        failed = False
+        query_node = None
         if self.criteria[self.offset] == StringFields.Kind:
-            self.workingQuery = ""
-            for kind in FileKinds:
-                if KindEval(kind, self.content):
-                    if len(self.workingQuery) > 0:
-                        if (len(self.query) == 0 and not self.again) or self.is_or:
-                            self.workingQuery += " OR "
-                        else:
-                            failed = True
-                            break
-
-                    self.workingQuery += "(lower(Uri)"
-                    self.workingQuery += (" LIKE '%" +
-                                          kind.extension +
-                                          "')") if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else (" NOT LIKE '%" +
-                                                                                                                         kind.extension +
-                                                                                                                         "%')")
-                    self.workingFull["kind_value"] = kind.extension
-                    self.workingFull["kind_operator"] = "like" if self.criteria[
-                        self.logicSignOffset] == LogicSign.StringPositive else "not like"
+            self.workingFull["value"] = self.content
+            matched_kinds = [kind for kind in FileKinds if KindEval(kind, self.content)]
+            kindOperator = "like" if self.criteria[self.logicSignOffset] == LogicSign.StringPositive else "not like"
+            if self._should_use_structured_kind_match(matched_kinds):
+                kindNodes = []
+                joiner = "or" if kindOperator == "like" else "and"
+                for kind in matched_kinds:
+                    kindQuery = "(lower(Uri)"
+                    kindQuery += (" LIKE '%" +
+                                  kind.extension +
+                                  "')") if kindOperator == "like" else (" NOT LIKE '%" +
+                                                                         kind.extension +
+                                                                         "%')")
+                    kindNodes.append(("Kind", kindQuery))
+                if len(kindNodes) == 1:
+                    query_node = kindNodes[0]
+                else:
+                    query_node = {joiner: kindNodes}
+            else:
+                logging.warning(
+                    'Treating Kind rule as free text instead of structured file-kind match: %s %s "%s"',
+                    self.fieldName,
+                    self.workingFull["operator"],
+                    self.content,
+                )
+                self.workingQuery += self.content.lower()
+                self.workingQuery += "%')" if end else "')"
+                query_node = (self.fieldName, self.workingQuery)
         else:
             self.workingQuery += self.content.lower()
             self.workingQuery += "%')" if end else "')"
             self.workingFull["value"] = self.content
+            query_node = (self.fieldName, self.workingQuery)
 
         if len(self.ignore) > 0:
-            self.ignore += self.conjunctionOutput
+            self.ignore += " or\n" if self.current_operator == "or" else " and\n"
 
-        if failed:
-            self.ignore += self.workingOutput
-        else:
-            if len(self.output) > 0:
-                self.output += self.conjunctionOutput
-            self.output += self.workingOutput
-
-            if len(self.query) > 0:
-                self.query += self.conjunctionQuery
-            self.query += self.workingQuery
-
-            self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
-            self.fullTreeCurrent.append(self.workingFull)
+        self.queryTreeCurrent.append(query_node)
+        self.fullTreeCurrent.append(self.workingFull)
 
     def ProcessIntField(self):
         self.fieldName = IntFields(self.criteria[self.offset]).name
@@ -423,14 +418,6 @@ class SmartPlaylistParser:
 
         self.workingQuery += ")"
 
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
         self.fullTreeCurrent.append(self.workingFull)
 
@@ -470,14 +457,6 @@ class SmartPlaylistParser:
 
         self.workingQuery += ")"
 
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
         self.fullTreeCurrent.append(self.workingFull)
 
@@ -509,14 +488,6 @@ class SmartPlaylistParser:
 
         self.workingQuery += ")"
 
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
         self.fullTreeCurrent.append(self.workingFull)
 
@@ -601,14 +572,6 @@ class SmartPlaylistParser:
                     logging.warning(errormessage)
                     self.ignore += " Not processed: %s " % errormessage
 
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
         self.fullTreeCurrent.append(self.workingFull)
 
@@ -625,17 +588,18 @@ class SmartPlaylistParser:
         if self.criteria[self.logicRulesOffset] == LogicRule.Is:
             number = self._iTunesUint(
                 self.criteria[self.intAOffset:self.intAOffset + 4], self.criteria[self.offset] == IntFields.Rating)
+            value = self._lookupListValue(valueDict, number, self.fieldName, listtype)
             if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                self.workingOutput += " is %s" % valueDict[number]
-                self.workingQuery += " = '%s'" % valueDict[number]
+                self.workingOutput += " is %s" % value
+                self.workingQuery += " = '%s'" % value
                 self.workingFull["operator"] = "is"
-                self.workingFull["value"] = valueDict[number]
+                self.workingFull["value"] = value
 
             else:
-                self.workingOutput += " is not %s" % valueDict[number]
-                self.workingQuery += " != '%s'" % valueDict[number]
+                self.workingOutput += " is not %s" % value
+                self.workingQuery += " != '%s'" % value
                 self.workingFull["operator"] = "is not"
-                self.workingFull["value"] = valueDict[number]
+                self.workingFull["value"] = value
 
         elif self.criteria[self.logicRulesOffset] == LogicRule.Other:
             numberA = self._iTunesUint(
@@ -643,16 +607,17 @@ class SmartPlaylistParser:
             numberB = self._iTunesUint(
                 self.criteria[self.intBOffset:self.intBOffset + 4], self.criteria[self.offset] == IntFields.Rating)
             if numberA == numberB:
+                value = self._lookupListValue(valueDict, numberA, self.fieldName, listtype)
                 if self.criteria[self.logicSignOffset] == LogicSign.IntPositive:
-                    self.workingOutput += " is %s" % valueDict[numberA]
-                    self.workingQuery += " = '%s'" % valueDict[numberA]
+                    self.workingOutput += " is %s" % value
+                    self.workingQuery += " = '%s'" % value
                     self.workingFull["operator"] = "is"
-                    self.workingFull["value"] = valueDict[numberA]
+                    self.workingFull["value"] = value
                 else:
-                    self.workingOutput += " is not %s" % valueDict[numberA]
-                    self.workingQuery += " != '%s'" % valueDict[numberA]
+                    self.workingOutput += " is not %s" % value
+                    self.workingQuery += " != '%s'" % value
                     self.workingFull["operator"] = "is not"
-                    self.workingFull["value"] = valueDict[numberA]
+                    self.workingFull["value"] = value
 
             else:  # pragma: no cover
                 errormessage = "Unkown case in ProcessListField %s:LogicRule.Other: %d != %d" % (self.fieldName, numberA, numberB)
@@ -671,14 +636,6 @@ class SmartPlaylistParser:
 
         self.workingQuery += ")"
 
-        if len(self.output) > 0:
-            self.output += self.conjunctionOutput
-
-        if len(self.query) > 0:
-            self.query += self.conjunctionQuery
-
-        self.output += self.workingOutput
-        self.query += self.workingQuery
         self.queryTreeCurrent.append((self.fieldName, self.workingQuery))
         self.fullTreeCurrent.append(self.workingFull)
 
@@ -709,3 +666,178 @@ class SmartPlaylistParser:
     @staticmethod
     def _formatPersistentID(idpart0, idpart1):
         return '{:08X}{:08X}'.format(idpart0, idpart1)
+
+    @staticmethod
+    def _operatorFromLogicType(logictype):
+        if logictype == 1:
+            return "or"
+        if logictype == 0:
+            return "and"
+
+        logging.error("Unknown logic type encountered: %d; defaulting to 'and'", logictype)
+        return "and"
+
+    @staticmethod
+    def _lookupListValue(valueDict, number, fieldName="unknown", listtype="list"):
+        if number in valueDict:
+            return valueDict[number]
+        logging.warning("Unknown %s list value encountered for %s: %d", listtype, fieldName, number)
+        return "UnknownValue[%d]" % number
+
+    def _buildQuery(self, node, nested=False):
+        if not node:
+            return ""
+
+        if isinstance(node, tuple):
+            return node[1]
+
+        if isinstance(node, dict):
+            if "and" in node:
+                rendered = " AND ".join(
+                    filter(None, (self._buildQuery(child, nested=True) for child in node["and"]))
+                )
+            elif "or" in node:
+                rendered = " OR ".join(
+                    filter(None, (self._buildQuery(child, nested=True) for child in node["or"]))
+                )
+            else:
+                return ""
+            if not rendered:
+                return ""
+            if nested:
+                return "( %s )" % rendered
+            return rendered
+
+        return ""
+
+    def _stripImplicitMediaKindFilter(self, node):
+        if not isinstance(node, dict) or "and" not in node:
+            return node
+
+        children = list(node["and"])
+        if len(children) < 2 or not self._isImplicitMediaKindFilter(children[0]):
+            return node
+
+        remaining = children[1:]
+        if len(remaining) == 1:
+            return remaining[0]
+        return {"and": remaining}
+
+    @staticmethod
+    def _isImplicitMediaKindFilter(node):
+        if isinstance(node, tuple):
+            return node[0] == "MediaKind" and node[1] in {
+                "(MediaKind = 'Music')",
+                "(MediaKind = 'Music Video')",
+            }
+
+        if isinstance(node, dict) and "or" not in node:
+            return (
+                node.get("field") == "MediaKind" and
+                node.get("operator") == "is" and
+                node.get("value") in {"Music", "Music Video"}
+            )
+
+        if not isinstance(node, dict) or "or" not in node:
+            return False
+
+        values = []
+        for child in node["or"]:
+            if isinstance(child, tuple):
+                if child[0] != "MediaKind":
+                    return False
+                if child[1] == "(MediaKind = 'Music')":
+                    values.append("Music")
+                elif child[1] == "(MediaKind = 'Music Video')":
+                    values.append("Music Video")
+                else:
+                    return False
+            elif isinstance(child, dict):
+                if child.get("field") != "MediaKind" or child.get("operator") != "is":
+                    return False
+                if child.get("value") not in {"Music", "Music Video"}:
+                    return False
+                values.append(child["value"])
+            else:
+                return False
+
+        return sorted(values) == ["Music", "Music Video"]
+
+    def _buildOutputTree(self, node, nested=False):
+        if not node:
+            return ""
+
+        if isinstance(node, dict):
+            if "and" in node:
+                rendered = ' and\n'.join(
+                    filter(None, (self._buildOutputTree(child, nested=True) for child in node["and"]))
+                )
+                return self._formatNestedOutput(rendered) if nested else rendered
+            if "or" in node:
+                rendered = ' or\n'.join(
+                    filter(None, (self._buildOutputTree(child, nested=True) for child in node["or"]))
+                )
+                return self._formatNestedOutput(rendered) if nested else rendered
+            return self._renderOutputLeaf(node)
+
+        return ""
+
+    @staticmethod
+    def _formatNestedOutput(rendered):
+        if not rendered:
+            return ""
+        return "[\n\t%s\n]" % "\n\t".join(rendered.split("\n"))
+
+    def _renderOutputLeaf(self, node):
+        field = node["field"]
+        operator = node["operator"]
+        value = node.get("value_date", node.get("value"))
+
+        if node["type"] == "string":
+            if operator == "like":
+                return '%s contains "%s" ' % (field, value)
+            if operator == "not like":
+                return '%s does not contain "%s" ' % (field, value)
+            if operator == "is":
+                return '%s is "%s" ' % (field, value)
+            if operator == "is not":
+                return '%s is not "%s" ' % (field, value)
+            if operator == "starts with":
+                return '%s starts with "%s" ' % (field, value)
+            if operator == "ends with":
+                return '%s ends with "%s" ' % (field, value)
+
+        if operator == "is":
+            return "%s is %s" % (field, value)
+
+        if operator == "is not":
+            return "%s is not %s" % (field, value)
+
+        if operator in {"is in the range", "is not in the range"} and isinstance(value, tuple):
+            return "%s %s of %s to %s" % (field, operator, value[0], value[1])
+
+        if operator == "greater than":
+            return "%s is greater than %s" % (field, value)
+
+        if operator == "less than":
+            return "%s is less than %s" % (field, value)
+
+        if operator == "is after":
+            return "%s is after %s" % (field, value)
+
+        if operator == "is before":
+            return "%s is before %s" % (field, value)
+
+        if operator == "is in the last":
+            return "%s is in the last %s" % (field, value)
+
+        if operator == "is not in the last":
+            return "%s is not in the last %s" % (field, value)
+
+        if operator == "between" and isinstance(value, tuple):
+            return "%s is in the range of %s to %s" % (field, value[0], value[1])
+
+        if operator == "not between" and isinstance(value, tuple):
+            return "%s is not in the range of %s to %s" % (field, value[0], value[1])
+
+        return "%s %s %s" % (field, operator, value)

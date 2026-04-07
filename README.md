@@ -3,15 +3,14 @@ iTunes Smartplaylist parser
 
 [![itunessmart on PyPI](https://img.shields.io/pypi/v/itunessmart.svg)](https://pypi.org/project/itunessmart/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/itunessmart.svg)](https://pypi.python.org/pypi/itunessmart)
-[![Coverage Status](https://coveralls.io/repos/github/cvzi/itunes_smartplaylist/badge.svg?branch=master)](https://coveralls.io/github/cvzi/itunes_smartplaylist?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/cvzi/itunes_smartplaylist/badge.svg?branch=main)](https://coveralls.io/github/cvzi/itunes_smartplaylist?branch=main)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/479adb4cc1eb4f6d8a5e9e193d676338)](https://www.codacy.com/app/cvzi/itunes_smartplaylist?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cvzi/itunes_smartplaylist&amp;utm_campaign=Badge_Grade)
-[![Build Status](https://travis-ci.org/cvzi/itunes_smartplaylist.svg?branch=master)](https://travis-ci.org/cvzi/itunes_smartplaylist)
 
 Convert smart playlist information to a readable form.
 
 This module is a **Python 3** implementation, based on [banshee-itunes-import-plugin](https://code.google.com/archive/p/banshee-itunes-import-plugin/) by [Scott Peterson](https://github.com/lunchtimemama).
 
-It was tested on Windows 11 with iTunes 12.13.7.1 (64bit) and Python 3.13.
+It was tested on Windows 11 with iTunes 12.13.10.3 (64bit) and Python 3.14.
 
 It does not work with Python 2.x.
 
